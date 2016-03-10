@@ -1,0 +1,29 @@
+# General build artifacts
+*.o
+*.a
+*.elf
+*.hex
+*.bin
+*.axf
+*.d
+*.lst
+*.map
+*.plg
+*.lnp
+*.crf
+*.tra
+*.sct
+*.bak
+*.dep
+
+# Eclipse
+.metadata
+.settings
+
+# Mac
+.DS_Store
+
+# Brillo development kit
+envsetup.sh
+out/
+
