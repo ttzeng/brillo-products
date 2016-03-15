@@ -14,23 +14,69 @@
  * limitations under the License.
  */
 #include <unistd.h>
-#include <stdio.h>
+#include <sysexits.h>
+
+#include <base/logging.h>
+#include <base/command_line.h>
+#include <base/macros.h>
+#include <base/bind.h>
+#include <binderwrapper/binder_wrapper.h>
+#include <brillo/binder_watcher.h>
+#include <brillo/daemons/daemon.h>
+#include <brillo/syslog_logging.h>
 
 #include <mraa.h>
 
+class MyDaemon final : public brillo::Daemon {
+public:
+	MyDaemon() = default;
+protected:
+	int OnInit() override;
+	void toggleLED(mraa_gpio_context gpio);
+private:
+	/* the bridge between libbinder and brillo::MessageLoop */
+	brillo::BinderWatcher binder_watcher_;
+
+	base::WeakPtrFactory<MyDaemon> weak_ptr_factory_{this};
+	DISALLOW_COPY_AND_ASSIGN(MyDaemon);
+};
+
 #define IO_LED		25
 
-int main(int argc, char* argv[])
+int MyDaemon::OnInit()
 {
-	mraa_init();
-	printf("hello mraa\n Version: %s\n Running on %s\n", mraa_get_version(), mraa_get_platform_name());
+	int rc;
+	if ((rc = brillo::Daemon::OnInit()) != EX_OK)
+		return rc;
 
+	/* Create and initialize the singleton for communicating with the real binder system */
+	android::BinderWrapper::Create();
+	if (!binder_watcher_.Init())
+		return EX_OSERR;
+
+	mraa_init();
+	LOG(INFO) << "hello mraa running on " << mraa_get_platform_name();
 	mraa_gpio_context gpio = mraa_gpio_init(IO_LED);
 	mraa_gpio_dir(gpio, MRAA_GPIO_OUT);
 
-	while (1) {
-		mraa_gpio_write(gpio, !mraa_gpio_read(gpio));
-		sleep(1);
-	}
-	return 0;
+	toggleLED(gpio);
+
+	return EX_OK;
+}
+
+void MyDaemon::toggleLED(mraa_gpio_context gpio)
+{
+	mraa_gpio_write(gpio, !mraa_gpio_read(gpio));
+
+	brillo::MessageLoop::current()->PostDelayedTask(
+		base::Bind(&MyDaemon::toggleLED, weak_ptr_factory_.GetWeakPtr(), gpio),
+		base::TimeDelta::FromMilliseconds(500));
+}
+
+int main(int argc, char* argv[])
+{
+	base::CommandLine::Init(argc, argv);
+	brillo::InitLog(brillo::kLogToSyslog | brillo::kLogHeader);
+	MyDaemon daemon;
+	return daemon.Run();
 }
