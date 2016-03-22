@@ -1,0 +1,11 @@
+# Domain for on/off service daemon.
+type on-off-service, domain;
+type on-off-service_exec, exec_type, file_type;
+
+brillo_domain(on-off-service)
+allow_crash_reporter(on-off-service)
+
+allow on-off-service sysfs:dir r_dir_perms;
+allow on-off-service sysfs:file rw_file_perms;
+allow on-off-service sysfs:lnk_file read;
+allow on-off-service on_off_service:service_manager { add find };

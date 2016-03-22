@@ -1,0 +1,3 @@
+# Set the product_id, which is used by the backends to route
+# metrics/crash reports to the right customer.
+weave-sample-products-1167:weaveonbrillo

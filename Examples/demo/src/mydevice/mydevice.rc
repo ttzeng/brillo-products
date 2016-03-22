@@ -1,0 +1,4 @@
+service mydevice /system/bin/mydevice
+	class late_start
+	user system
+	group system

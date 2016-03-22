@@ -1,0 +1,11 @@
+# Domain for mydevice daemon.
+type mydevice, domain;
+type mydevice_exec, exec_type, file_type;
+
+brillo_domain(mydevice)
+allow_crash_reporter(mydevice)
+
+allow_call_weave(mydevice)
+
+allow mydevice on_off_service:service_manager find;
+binder_call(mydevice, on-off-service)

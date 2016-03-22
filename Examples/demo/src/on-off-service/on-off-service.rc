@@ -1,0 +1,4 @@
+service on-off-service /system/bin/on-off-service
+	class late_start
+	user root
+	group system dbus

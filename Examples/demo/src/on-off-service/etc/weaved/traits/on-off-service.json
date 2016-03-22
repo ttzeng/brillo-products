@@ -1,0 +1,19 @@
+{
+	"onOff": {
+		"commands": {
+			"setConfig": {
+				"minimalRole": "user",
+				"parameters": {
+					"state": { "type": "string", "enum": [ "on", "off" ] }
+				}
+			}
+		},
+		"state": {
+			"state": {
+				"isRequired": true,
+				"type": "string",
+				"enum": [ "on", "off" ]
+			}
+		}
+	}
+}

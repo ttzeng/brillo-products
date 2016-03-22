@@ -1,0 +1,2 @@
+/system/bin/mydevice		u:object_r:mydevice_exec:s0
+/system/bin/on-off-service	u:object_r:on-off-service_exec:s0
