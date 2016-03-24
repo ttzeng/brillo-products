@@ -1,1 +1,2 @@
 on_off_service u:object_r:on_off_service:s0
+mp3_player_service u:object_r:mp3_player_service:s0

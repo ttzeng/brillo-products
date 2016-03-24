@@ -1,1 +1,2 @@
 type on_off_service, service_manager_type;
+type mp3_player_service, service_manager_type;

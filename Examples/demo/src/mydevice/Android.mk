@@ -36,5 +36,6 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_STATIC_LIBRARIES := \
 	libon-off-service \
+	libmp3-player-service \
 
 include $(BUILD_EXECUTABLE)

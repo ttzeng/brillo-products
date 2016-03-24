@@ -9,3 +9,6 @@ allow_call_weave(mydevice)
 
 allow mydevice on_off_service:service_manager find;
 binder_call(mydevice, on-off-service)
+
+allow mydevice mp3_player_service:service_manager find;
+binder_call(mydevice, srv-mp3-player)
