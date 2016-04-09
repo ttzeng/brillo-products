@@ -36,6 +36,7 @@ using brillo::demo::IOnOffService;
 using brillo::demo::IMp3PlayerService;
 
 namespace {
+	const char Welcome[] = "     Brillo Jukebox demo running on Minnowboard";
 	const char kWeaveComponent[] = "mydevice";
 }
 
@@ -61,6 +62,8 @@ protected:
 	void OnMp3Play(std::unique_ptr<weaved::Command> command);
 	void OnMp3Pause(std::unique_ptr<weaved::Command> command);
 	void OnMp3Stop(std::unique_ptr<weaved::Command> command);
+
+	void SetDisplay(std::string msg);
 private:
 	/* the bridge between libbinder and brillo::MessageLoop */
 	brillo::BinderWatcher binder_watcher_;
@@ -159,7 +162,8 @@ void DeviceDaemon::ConnectToOnOffService()
 	binder_wrapper->RegisterForDeathNotifications(binder,
 		base::Bind(&DeviceDaemon::OnOnOffServiceDisconnected, weak_ptr_factory_.GetWeakPtr()));
 	on_off_service_ = android::interface_cast<IOnOffService>(binder);
-	UpdateDeviceState();
+	SetDisplay(::Welcome);
+	UpdateOnOffTraitState();
 }
 
 void DeviceDaemon::OnOnOffServiceDisconnected()
@@ -206,7 +210,14 @@ void DeviceDaemon::OnSetConfig(std::unique_ptr<weaved::Command> command)
 	}
 	command->Complete({}, nullptr);
 
-	UpdateDeviceState();
+	UpdateOnOffTraitState();
+}
+
+void DeviceDaemon::SetDisplay(std::string msg)
+{
+	if (on_off_service_.get()) {
+		on_off_service_->setDisplay(::android::String16(msg.c_str()));
+	}
 }
 
 void DeviceDaemon::ConnectToMp3PlayerService()
@@ -224,7 +235,7 @@ void DeviceDaemon::ConnectToMp3PlayerService()
 		base::Bind(&DeviceDaemon::OnMp3PlayerServiceDisconnected, weak_ptr_factory_.GetWeakPtr()));
 	mp3_player_service_ = android::interface_cast<IMp3PlayerService>(binder);
 	TrackMp3PlayerReachedEOS();
-	UpdateDeviceState();
+	UpdateMediaPlayerTraitState();
 }
 
 void DeviceDaemon::TrackMp3PlayerReachedEOS()
@@ -262,10 +273,12 @@ void DeviceDaemon::UpdateMediaPlayerTraitState()
 		if (status.isOk()) {
 			std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
 			player_state = convert.to_bytes(player_info.string());
-			if (player_state.compare("idle") == 0)
+			if (player_state.compare("idle") == 0) {
+				SetDisplay(::Welcome);
 				mp3_current_playing = "-";
-			else if (player_state.compare("paused") != 0) {
+			} else if (player_state.compare("paused") != 0) {
 				mp3_current_playing = player_state;
+				SetDisplay("     Playing: " + mp3_current_playing);
 				player_state = "playing";
 			}
 		}
@@ -295,7 +308,7 @@ void DeviceDaemon::OnMp3Play(std::unique_ptr<weaved::Command> command)
 	}
 	command->Complete({}, nullptr);
 
-	UpdateDeviceState();
+	UpdateMediaPlayerTraitState();
 }
 
 void DeviceDaemon::OnMp3Pause(std::unique_ptr<weaved::Command> command)
@@ -312,7 +325,7 @@ void DeviceDaemon::OnMp3Pause(std::unique_ptr<weaved::Command> command)
 	}
 	command->Complete({}, nullptr);
 
-	UpdateDeviceState();
+	UpdateMediaPlayerTraitState();
 }
 
 void DeviceDaemon::OnMp3Stop(std::unique_ptr<weaved::Command> command)
@@ -329,7 +342,7 @@ void DeviceDaemon::OnMp3Stop(std::unique_ptr<weaved::Command> command)
 	}
 	command->Complete({}, nullptr);
 
-	UpdateDeviceState();
+	UpdateMediaPlayerTraitState();
 }
 
 int main(int argc, char* argv[])

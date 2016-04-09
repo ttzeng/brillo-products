@@ -19,4 +19,5 @@ package brillo.demo;
 interface IOnOffService {
 	void setState(boolean state);
 	boolean getState();
+	void setDisplay(String msg);
 }

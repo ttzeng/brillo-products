@@ -23,6 +23,7 @@ LOCAL_CFLAGS := -Wall -Werror -Wno-unused-parameter -fexceptions
 
 LOCAL_SRC_FILES :=	\
 	on-off-service.cpp	\
+	sketch.cpp \
 
 LOCAL_SHARED_LIBRARIES := \
 	libbinder \
@@ -37,6 +38,7 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_STATIC_LIBRARIES := \
 	libon-off-service \
+	libarduino-mraa \
 
 include $(BUILD_EXECUTABLE)
 

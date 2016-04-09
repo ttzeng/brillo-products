@@ -28,18 +28,18 @@
 #include <mraa.h>
 #include "brillo/demo/BnOnOffService.h"
 #include "on-off-service.h"
+#include "Arduino.h"
 
 #define IO_ON_OFF	25
 
 class OnOffService : public brillo::demo::BnOnOffService {
 public:
 	OnOffService() {
-		mraa_init();
-		LOG(INFO) << "hello mraa running on " << mraa_get_platform_name();
 		gpio = mraa_gpio_init(IO_ON_OFF);
 		mraa_gpio_dir(gpio, MRAA_GPIO_OUT);
 		mraa_gpio_write(gpio, state = true);
 	}
+	std::string getDisplayText() { return display; }
 	android::binder::Status setState(bool flag) {
 		LOG(INFO) << "OnOffService::setState(" << flag << ")";
 		mraa_gpio_write(gpio, state = flag);
@@ -50,9 +50,14 @@ public:
 		*pFlag = state;
 		return android::binder::Status::ok();
 	}
+	android::binder::Status setDisplay(const ::android::String16& msg) {
+		display = ::android::String8(msg).string();
+		return android::binder::Status::ok();
+	}
 private:
 	bool state;
 	mraa_gpio_context gpio;
+	std::string display;
 };
 
 class MyDaemon final : public brillo::Daemon {
@@ -60,11 +65,14 @@ public:
 	MyDaemon() = default;
 protected:
 	int OnInit() override;
+	void sketch_loop(unsigned delay_in_msec);
 private:
 	/* the bridge between libbinder and brillo::MessageLoop */
 	brillo::BinderWatcher binder_watcher_;
 
 	android::sp<OnOffService> on_off_service_;
+	std::string display;
+	size_t pos = 0;
 
 	base::WeakPtrFactory<MyDaemon> weak_ptr_factory_{this};
 	DISALLOW_COPY_AND_ASSIGN(MyDaemon);
@@ -84,8 +92,31 @@ int MyDaemon::OnInit()
 	on_off_service_ = new OnOffService();
 	android::BinderWrapper::Get()->RegisterService(on_off_service::kBinderServiceName,
 	                                               on_off_service_);
+
+	setup();
+	sketch_loop(20);
+
 	return EX_OK;
 }
+
+void MyDaemon::sketch_loop(unsigned delay_in_msec)
+{
+	extern void printCharWithShift(char c, int shift_speed);
+	if (pos >= display.length()) {
+		display = on_off_service_->getDisplayText();
+		pos = 0;
+	}
+	if (display.length() > 0)
+		printCharWithShift(display[pos++], 100);
+	brillo::MessageLoop::current()->PostDelayedTask(
+			base::Bind(&MyDaemon::sketch_loop, weak_ptr_factory_.GetWeakPtr(), delay_in_msec),
+			base::TimeDelta::FromMilliseconds(delay_in_msec));
+}
+
+class Board {
+public:
+	Board() { mraa_init(); }
+} board;
 
 int main(int argc, char* argv[])
 {
