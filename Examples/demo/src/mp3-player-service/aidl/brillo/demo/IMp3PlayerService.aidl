@@ -22,4 +22,8 @@ interface IMp3PlayerService {
 	void stop();
 	boolean reachedEOS();
 	String status();
+	float getVolume();
+	void setVolume(float volume);
+	boolean isMuted();
+	void mute(boolean state);
 }

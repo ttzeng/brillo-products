@@ -33,6 +33,7 @@
 #include <media/stagefright/OMXClient.h>
 #include <media/stagefright/OMXCodec.h>
 #include <media/stagefright/foundation/AMessage.h>
+#include <media/AudioSystem.h>
 #include <include/MP3Extractor.h>
 
 #include "brillo/demo/BnMp3PlayerService.h"
@@ -60,6 +61,23 @@ public:
 	android::binder::Status stop();
 	android::binder::Status reachedEOS(bool* pEOS);
 	android::binder::Status status(String16* pInfo);
+	android::binder::Status getVolume(float* pVol) {
+		if (AudioSystem::getMasterVolume(pVol) != NO_ERROR)
+			*pVol = 0.0f;
+		return android::binder::Status::ok();
+	}
+	android::binder::Status setVolume(float vol) {
+		AudioSystem::setMasterVolume(vol);
+		return android::binder::Status::ok();
+	}
+	android::binder::Status isMuted(bool* pState) {
+		AudioSystem::getMasterMute(pState);
+		return android::binder::Status::ok();
+	}
+	android::binder::Status mute(bool state) {
+		AudioSystem::setMasterMute(state);
+		return android::binder::Status::ok();
+	}
 private:
 	void reloadPlaylist();
 	status_t PlayStagefrightMp3(std::string filename);

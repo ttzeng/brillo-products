@@ -16,5 +16,6 @@
 
 namespace mp3_player_service {
 	const char kWeaveTrait[] = "_mediaplayer";
+	const char kVolumeTrait[] = "volume";
 	const char kBinderServiceName[] = "mp3_player_service";
 }
