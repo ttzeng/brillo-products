@@ -1,0 +1,31 @@
+{
+	"volume": {
+		"commands": {
+			"setConfig": {
+				"minimalRole": "user",
+				"parameters": {
+					"volume": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"isMuted": {
+						"type": "boolean"
+					}
+				}
+			}
+		},
+		"state": {
+			"volume": {
+				"isRequired": true,
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 100
+			},
+			"isMuted": {
+				"isRequired": true,
+				"type": "boolean"
+			}
+		}
+	}
+}
