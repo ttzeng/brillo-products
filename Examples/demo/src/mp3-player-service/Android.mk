@@ -17,7 +17,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE := mp3-player-service
 LOCAL_INIT_RC := mp3-player-service.rc
-LOCAL_REQUIRED_MODULES := mediaplayer.json
+LOCAL_REQUIRED_MODULES := mediaplayer.json volume.json
 
 LOCAL_CFLAGS := -Wall -Werror -Wno-unused-parameter
 
@@ -50,6 +50,14 @@ include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := mediaplayer.json
+LOCAL_MODULE_CLASS := ETC
+LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/weaved/traits
+LOCAL_SRC_FILES := etc/weaved/traits/$(LOCAL_MODULE)
+
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := volume.json
 LOCAL_MODULE_CLASS := ETC
 LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/weaved/traits
 LOCAL_SRC_FILES := etc/weaved/traits/$(LOCAL_MODULE)

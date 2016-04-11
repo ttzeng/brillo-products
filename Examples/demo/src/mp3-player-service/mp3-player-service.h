@@ -17,6 +17,7 @@
 
 namespace mp3_player_service {
 	extern const char kWeaveTrait[];
+	extern const char kVolumeTrait[];
 	extern const char kBinderServiceName[];
 }
 

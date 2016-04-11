@@ -62,6 +62,7 @@ protected:
 	void OnMp3Play(std::unique_ptr<weaved::Command> command);
 	void OnMp3Pause(std::unique_ptr<weaved::Command> command);
 	void OnMp3Stop(std::unique_ptr<weaved::Command> command);
+	void OnMp3SetVolume(std::unique_ptr<weaved::Command> command);
 
 	void SetDisplay(std::string msg);
 private:
@@ -114,6 +115,7 @@ void DeviceDaemon::OnWeaveServiceConnected(const std::weak_ptr<weaved::Service>&
 		return;
 
 	weave_service->AddComponent(::kWeaveComponent, { on_off_service::kWeaveTrait,
+	                                                 mp3_player_service::kVolumeTrait,
 	                                                 mp3_player_service::kWeaveTrait }, nullptr);
 	weave_service->AddCommandHandler(
 		::kWeaveComponent, on_off_service::kWeaveTrait, "setConfig",
@@ -127,6 +129,9 @@ void DeviceDaemon::OnWeaveServiceConnected(const std::weak_ptr<weaved::Service>&
 	weave_service->AddCommandHandler(
 		::kWeaveComponent, mp3_player_service::kWeaveTrait, "stop",
 		base::Bind(&DeviceDaemon::OnMp3Stop, weak_ptr_factory_.GetWeakPtr()));
+	weave_service->AddCommandHandler(
+		::kWeaveComponent, mp3_player_service::kVolumeTrait, "setConfig",
+		base::Bind(&DeviceDaemon::OnMp3SetVolume, weak_ptr_factory_.GetWeakPtr()));
 
 	weave_service->SetPairingInfoListener(
 		base::Bind(&DeviceDaemon::OnPairingInfoChanged, weak_ptr_factory_.GetWeakPtr()));
@@ -283,6 +288,13 @@ void DeviceDaemon::UpdateMediaPlayerTraitState()
 			}
 		}
 
+		float volume = 0;
+		bool mute;
+		status = mp3_player_service_->isMuted(&mute);
+		if (status.isOk()) {
+			mp3_player_service_->getVolume(&volume);
+		}
+
 		auto weave_service = weave_service_.lock();
 		if (!weave_service)
 			return;
@@ -290,6 +302,8 @@ void DeviceDaemon::UpdateMediaPlayerTraitState()
 		base::DictionaryValue state_change;
 		state_change.SetString("_mediaplayer.status", player_state);
 		state_change.SetString("_mediaplayer.display", mp3_current_playing);
+		state_change.SetInteger("volume.volume", volume * 100);
+		state_change.SetBoolean("volume.isMuted", mute);
 		weave_service->SetStateProperties(::kWeaveComponent, state_change, nullptr);
 	}
 }
@@ -336,6 +350,33 @@ void DeviceDaemon::OnMp3Stop(std::unique_ptr<weaved::Command> command)
 		return;
 	}
 	android::binder::Status status = mp3_player_service_->stop();
+	if (!status.isOk()) {
+		command->AbortWithCustomError(status, nullptr);
+		return;
+	}
+	command->Complete({}, nullptr);
+
+	UpdateMediaPlayerTraitState();
+}
+
+void DeviceDaemon::OnMp3SetVolume(std::unique_ptr<weaved::Command> command)
+{
+	int level = command->GetParameter<int>("volume");
+	bool mute = command->GetParameter<bool>("isMuted");
+	float volume = mute? 0 : (float)level/100;
+	LOG(INFO) << "Received command to set the audio volume to " << volume;
+
+	if (!on_off_service_.get()) {
+		command->Abort("_system_error", "MP3 player service unavailable", nullptr);
+		return;
+	}
+	android::binder::Status status = mp3_player_service_->mute(mute);
+	if (!status.isOk()) {
+		command->AbortWithCustomError(status, nullptr);
+		return;
+	}
+	if (!mute)
+		status = mp3_player_service_->setVolume(volume);
 	if (!status.isOk()) {
 		command->AbortWithCustomError(status, nullptr);
 		return;
