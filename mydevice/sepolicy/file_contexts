@@ -1,0 +1,8 @@
+# Uncomment the line below and replace 'sampleservice' with your service's
+# executable.
+# /system/bin/sampleservice             u:object_r:mydevice_service_exec:s0
+/system/bin/mydevice		u:object_r:mydevice_exec:s0
+
+# If your service needs to persist data, uncomment the line below and replace
+# 'sampleservice' with your service's name or executable.
+# /data/misc/sampleservice(/.*)?        u:object_r:mydevice_service_data_file:s0

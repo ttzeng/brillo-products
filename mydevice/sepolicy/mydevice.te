@@ -1,0 +1,27 @@
+# Base domain for a Brillo service.
+# You can use 'mydevice_service' as your service's domain directly,
+# or use it as a base for your service's own domain.
+type mydevice, domain;
+type mydevice_exec, exec_type, file_type;
+
+# To use 'mydevice_service' as the domain for your service,
+# label the service's executable as 'mydevice_service_exec' in the 'file_contexts'
+# file in this directory.
+# brillo_domain() below ensures that executables labelled 'mydevice_service_exec'
+# will be put in the 'mydevice_service' domain at runtime.
+
+# Allow domain transition from init, and access to D-Bus and Binder.
+# See 'te_macros' in ${BDK_PATH}/device/generic/brillo/sepolicy for details.
+brillo_domain(mydevice)
+
+# Allow network access (e.g. opening sockets).
+net_domain(mydevice)
+
+# Allow crash_reporter access to core dump files.
+allow_crash_reporter(mydevice)
+
+allow_call_weave(mydevice)
+
+# sysfs accesses required by libmraa
+allow mydevice i2c_device:chr_file { read write ioctl open };
+allow mydevice sysfs:file { read write getattr open };

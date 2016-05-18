@@ -1,0 +1,4 @@
+# Format:
+# path-in-product-dir:path-to-install-in-device
+# E.g., weaved.conf:system/etc/weaved/weaved.conf
+weaved.conf:system/etc/weaved/weaved.conf    
