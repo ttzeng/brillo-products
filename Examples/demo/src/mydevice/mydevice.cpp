@@ -366,7 +366,7 @@ void DeviceDaemon::OnMp3SetVolume(std::unique_ptr<weaved::Command> command)
 	float volume = mute? 0 : (float)level/100;
 	LOG(INFO) << "Received command to set the audio volume to " << volume;
 
-	if (!on_off_service_.get()) {
+	if (!mp3_player_service_.get()) {
 		command->Abort("_system_error", "MP3 player service unavailable", nullptr);
 		return;
 	}
