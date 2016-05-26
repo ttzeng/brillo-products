@@ -31,7 +31,8 @@
 #include <media/stagefright/MediaExtractor.h>
 #include <media/stagefright/MetaData.h>
 #include <media/stagefright/OMXClient.h>
-#include <media/stagefright/OMXCodec.h>
+#include <media/stagefright/SimpleDecodingSource.h>
+#include <media/stagefright/ACodec.h>
 #include <media/stagefright/foundation/AMessage.h>
 #include <media/AudioSystem.h>
 #include <include/MP3Extractor.h>
@@ -50,8 +51,9 @@ class Mp3PlayerService : public brillo::demo::BnMp3PlayerService {
 	};
 public:
 	Mp3PlayerService() : player(nullptr), state(Idle) {
-		CHECK_EQ(client.connect(), (status_t)OK);
-		reloadPlaylist();
+		status_t status = client.connect();
+		if (status == OK)
+			reloadPlaylist();
 	}
 	~Mp3PlayerService() {
 		if (player) delete player;
@@ -121,20 +123,23 @@ status_t Mp3PlayerService::PlayStagefrightMp3(std::string filename)
 		LOG(ERROR) << "Could not open the mp3 file source.";
 		return status;
 	}
-	// Extract track.
-	sp<AMessage> message = new AMessage();
 
-	sp<MediaExtractor> media_extractor = new MP3Extractor(file_source, message);
+	// Register default sniffers so MediaExtractor knows what kind of sniffer to
+	// use.
+	file_source->RegisterDefaultSniffers();
+
+	// Extract media.
+	sp<MediaExtractor> media_extractor =
+		reinterpret_cast<android::MediaExtractor*>(MediaExtractor::Create(file_source, NULL).get());
 	LOG(INFO) << "Num tracks: " << media_extractor->countTracks();
-	sp<MediaSource> media_source = media_extractor->getTrack(0);
+	sp<MediaSource> media_source =
+		reinterpret_cast<android::MediaSource*>(media_extractor->getTrack(0).get());
 
-	// Decode mp3.
-	sp<MetaData> meta_data = media_source->getFormat();
-	sp<MediaSource> decoded_source =
-		OMXCodec::Create(client.interface(), meta_data, false, media_source);
+	// Decode audio.
+	sp<MediaSource> decoded_source = SimpleDecodingSource::Create(media_source);
 
-	// Play mp3.
-	player = new AudioPlayer(nullptr);	// Initialize without source.
+	// Play audio.
+	player = new AudioPlayer(nullptr);  // Initialize without source.
 	player->setSource(decoded_source);
 	status = player->start();
 	if (status != OK) {
@@ -215,7 +220,7 @@ private:
 
 	android::sp<Mp3PlayerService> mp3_player_service_;
 
-	base::WeakPtrFactory<MyDaemon> weak_ptr_factory_{this};
+	::base::WeakPtrFactory<MyDaemon> weak_ptr_factory_{this};
 	DISALLOW_COPY_AND_ASSIGN(MyDaemon);
 };
 
@@ -238,7 +243,7 @@ int MyDaemon::OnInit()
 
 int main(int argc, char* argv[])
 {
-	base::CommandLine::Init(argc, argv);
+	::base::CommandLine::Init(argc, argv);
 	brillo::InitLog(brillo::kLogToSyslog | brillo::kLogHeader);
 	MyDaemon daemon;
 	return daemon.Run();
