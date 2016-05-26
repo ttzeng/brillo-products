@@ -56,6 +56,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libon-off-service
 LOCAL_AIDL_INCLUDES := $(LOCAL_PATH)/aidl
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)
+LOCAL_C_INCLUDES := \
+	system/core/base/include \
 
 LOCAL_SRC_FILES := \
 	aidl/brillo/demo/IOnOffService.aidl \

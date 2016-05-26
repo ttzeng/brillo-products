@@ -68,6 +68,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libmp3-player-service
 LOCAL_AIDL_INCLUDES := $(LOCAL_PATH)/aidl
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)
+LOCAL_C_INCLUDES := \
+	system/core/base/include \
 
 LOCAL_SRC_FILES := \
 	aidl/brillo/demo/IMp3PlayerService.aidl \
