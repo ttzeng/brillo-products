@@ -1,0 +1,30 @@
+# Domain for MP3 player service daemon.
+type srv-mp3-player, domain;
+type srv-mp3-player_exec, exec_type, file_type;
+
+brillo_domain(srv-mp3-player)
+allow_crash_reporter(srv-mp3-player)
+
+allow srv-mp3-player sysfs:dir r_dir_perms;
+allow srv-mp3-player sysfs:file rw_file_perms;
+allow srv-mp3-player sysfs:lnk_file read;
+allow srv-mp3-player sysfs_devices_system_cpu:dir search;
+allow srv-mp3-player sysfs_devices_system_cpu:file { read getattr open };
+allow srv-mp3-player system_data_file:file r_file_perms;
+allow srv-mp3-player system_data_file:dir { r_dir_perms create write add_name open };
+
+allow srv-mp3-player mp3_player_service:service_manager { add find };
+
+allow srv-mp3-player mediaserver:binder call;
+allow srv-mp3-player mediaserver_service:service_manager find;
+allow srv-mp3-player mediaserver:fd use;
+
+allow srv-mp3-player servicemanager:binder call;
+
+#============= mediaserver ==============
+allow mediaserver srv-mp3-player:binder transfer;
+
+#============= servicemanager ==============
+allow servicemanager srv-mp3-player:dir search;
+allow servicemanager srv-mp3-player:file { read open };
+allow servicemanager srv-mp3-player:process getattr;

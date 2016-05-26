@@ -1,0 +1,6 @@
+# Service names can be at most 16 characters long,
+# and can contain alphanumeric characters, "_", and "-".
+service srv-mp3-player /system/bin/mp3-player-service
+	class late_start
+	user root
+	group system

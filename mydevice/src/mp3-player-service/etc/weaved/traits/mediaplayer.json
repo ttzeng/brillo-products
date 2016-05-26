@@ -1,0 +1,24 @@
+{
+	"_mediaplayer": {
+		"commands": {
+			"play": {
+				"minimalRole": "user"
+			},
+			"pause": {
+				"minimalRole": "user"
+			},
+			"stop": {
+				"minimalRole": "user"
+			}
+		},
+		"state": {
+			"status": {
+				"type": "string",
+				"enum": [ "idle", "playing", "paused" ]
+			},
+			"display": {
+				"type": "string"
+			}
+		}
+	}
+}

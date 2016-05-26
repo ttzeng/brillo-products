@@ -2,6 +2,7 @@
 # executable.
 # /system/bin/sampleservice             u:object_r:mydevice_service_exec:s0
 /system/bin/mydevice		u:object_r:mydevice_exec:s0
+/system/bin/mp3-player-service	u:object_r:srv-mp3-player_exec:s0
 
 # If your service needs to persist data, uncomment the line below and replace
 # 'sampleservice' with your service's name or executable.

@@ -29,6 +29,10 @@
 
 #include <mraa.h>
 
+#include "mydevice/mp3player/BnMp3PlayerService.h"
+#include "mp3-player-service.h"
+using mydevice::mp3player::IMp3PlayerService;
+
 namespace {
 	const char kWeaveComponent[] = "mydevice";
 	const char kOnOffTrait[] = "onOff";
@@ -43,8 +47,18 @@ protected:
 	void OnWeaveServiceConnected(const std::weak_ptr<weaved::Service>& service);
 	void OnPairingInfoChanged(const weaved::Service::PairingInfo* pairing_info);
 	void UpdateDeviceState();
+
+	void ConnectToMp3PlayerService();
+	void OnMp3PlayerServiceDisconnected();
+	void UpdateMediaPlayerTraitState();
+	void TrackMp3PlayerReachedEOS();
+
 	// Command handlers
 	void OnSetConfig(std::unique_ptr<weaved::Command> command);
+	void OnMp3Play(std::unique_ptr<weaved::Command> command);
+	void OnMp3Pause(std::unique_ptr<weaved::Command> command);
+	void OnMp3Stop(std::unique_ptr<weaved::Command> command);
+	void OnMp3SetVolume(std::unique_ptr<weaved::Command> command);
 private:
 	/* the bridge between libbinder and brillo::MessageLoop */
 	brillo::BinderWatcher binder_watcher_;
@@ -54,6 +68,10 @@ private:
 	std::weak_ptr<weaved::Service> weave_service_;
 
 	mraa_gpio_context ctxOnBoardLed;
+
+	/* the MP3 player service interface */
+	android::sp<IMp3PlayerService> mp3_player_service_;
+	std::string mp3_current_playing;
 
 	base::WeakPtrFactory<DeviceDaemon> weak_ptr_factory_{this};
 	DISALLOW_COPY_AND_ASSIGN(DeviceDaemon);
@@ -80,6 +98,8 @@ int DeviceDaemon::OnInit()
 	ctxOnBoardLed = mraa_gpio_init(pinOnBoardLed);
 	mraa_gpio_dir(ctxOnBoardLed, MRAA_GPIO_OUT);
 
+	ConnectToMp3PlayerService();
+
 	return EX_OK;
 }
 
@@ -92,11 +112,28 @@ void DeviceDaemon::OnWeaveServiceConnected(const std::weak_ptr<weaved::Service>&
 	if (!weave_service)
 		return;
 
-	weave_service->AddComponent(::kWeaveComponent, { ::kOnOffTrait }, nullptr);
-
+	weave_service->AddComponent(::kWeaveComponent, { ::kOnOffTrait,
+	                                                 mp3_player_service::kVolumeTrait,
+	                                                 mp3_player_service::k_MediaPlayerTrait,
+	                                               }, nullptr);
+	// onOff trait
 	weave_service->AddCommandHandler(
 		::kWeaveComponent, ::kOnOffTrait, "setConfig",
 		base::Bind(&DeviceDaemon::OnSetConfig, weak_ptr_factory_.GetWeakPtr()));
+	// _mediaplayer trait
+	weave_service->AddCommandHandler(
+		::kWeaveComponent, mp3_player_service::k_MediaPlayerTrait, "play",
+		base::Bind(&DeviceDaemon::OnMp3Play, weak_ptr_factory_.GetWeakPtr()));
+	weave_service->AddCommandHandler(
+		::kWeaveComponent, mp3_player_service::k_MediaPlayerTrait, "pause",
+		base::Bind(&DeviceDaemon::OnMp3Pause, weak_ptr_factory_.GetWeakPtr()));
+	weave_service->AddCommandHandler(
+		::kWeaveComponent, mp3_player_service::k_MediaPlayerTrait, "stop",
+		base::Bind(&DeviceDaemon::OnMp3Stop, weak_ptr_factory_.GetWeakPtr()));
+	// volume trait
+	weave_service->AddCommandHandler(
+		::kWeaveComponent, mp3_player_service::kVolumeTrait, "setConfig",
+		base::Bind(&DeviceDaemon::OnMp3SetVolume, weak_ptr_factory_.GetWeakPtr()));
 
 	weave_service->SetPairingInfoListener(
 		base::Bind(&DeviceDaemon::OnPairingInfoChanged, weak_ptr_factory_.GetWeakPtr()));
@@ -122,6 +159,8 @@ void DeviceDaemon::UpdateDeviceState()
 	base::DictionaryValue state_change;
 	state_change.SetString("onOff.state", output_string);
 	weave_service->SetStateProperties(::kWeaveComponent, state_change, nullptr);
+
+	UpdateMediaPlayerTraitState();
 }
 
 void DeviceDaemon::OnSetConfig(std::unique_ptr<weaved::Command> command)
@@ -131,6 +170,165 @@ void DeviceDaemon::OnSetConfig(std::unique_ptr<weaved::Command> command)
 	mraa_gpio_write(ctxOnBoardLed, !state.compare("on"));
 	command->Complete({}, nullptr);
 	UpdateDeviceState();
+}
+
+void DeviceDaemon::ConnectToMp3PlayerService()
+{
+	android::BinderWrapper* binder_wrapper = android::BinderWrapper::Get();
+	auto binder = binder_wrapper->GetService(mp3_player_service::kBinderServiceName);
+	if (!binder.get()) {
+		brillo::MessageLoop::current()->PostDelayedTask(
+			base::Bind(&DeviceDaemon::ConnectToMp3PlayerService, weak_ptr_factory_.GetWeakPtr()),
+			base::TimeDelta::FromMilliseconds(500));
+		return;
+	}
+	LOG(INFO) << "DeviceDaemon::Mp3PlayerServiceConnected";
+	binder_wrapper->RegisterForDeathNotifications(binder,
+		base::Bind(&DeviceDaemon::OnMp3PlayerServiceDisconnected, weak_ptr_factory_.GetWeakPtr()));
+	mp3_player_service_ = android::interface_cast<IMp3PlayerService>(binder);
+	TrackMp3PlayerReachedEOS();
+	UpdateMediaPlayerTraitState();
+}
+
+void DeviceDaemon::TrackMp3PlayerReachedEOS()
+{
+	if (mp3_player_service_.get()) {
+		bool eos = true;
+		android::binder::Status status = mp3_player_service_->reachedEOS(&eos);
+		if (status.isOk() && mp3_current_playing.compare("-") != 0 && eos) {
+			LOG(INFO) << "Advance to next track due to end of stream";
+			status = mp3_player_service_->stop();
+			if (status.isOk())
+				status = mp3_player_service_->play();
+			UpdateMediaPlayerTraitState();
+		}
+	}
+	brillo::MessageLoop::current()->PostDelayedTask(
+		base::Bind(&DeviceDaemon::TrackMp3PlayerReachedEOS, weak_ptr_factory_.GetWeakPtr()),
+		base::TimeDelta::FromSeconds(3));
+}
+
+void DeviceDaemon::OnMp3PlayerServiceDisconnected()
+{
+	LOG(INFO) << "DeviceDaemon::OnMp3PlayerServiceDisconnected";
+	mp3_player_service_ = nullptr;
+	ConnectToMp3PlayerService();
+}
+
+void DeviceDaemon::UpdateMediaPlayerTraitState()
+{
+	LOG(INFO) << "DeviceDaemon::UpdateMediaPlayerTraitState";
+	if (mp3_player_service_.get()) {
+		::android::String16 player_info;
+		android::binder::Status status = mp3_player_service_->status(&player_info);
+		std::string player_state("unknown");
+		if (status.isOk()) {
+			std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
+			player_state = convert.to_bytes(player_info.string());
+			if (player_state.compare("idle") == 0) {
+				mp3_current_playing = "-";
+			} else if (player_state.compare("paused") != 0) {
+				mp3_current_playing = player_state;
+				player_state = "playing";
+			}
+		}
+
+		float volume = 0;
+		bool mute;
+		status = mp3_player_service_->isMuted(&mute);
+		if (status.isOk()) {
+			mp3_player_service_->getVolume(&volume);
+		}
+
+		auto weave_service = weave_service_.lock();
+		if (!weave_service)
+			return;
+
+		base::DictionaryValue state_change;
+		state_change.SetString("_mediaplayer.status", player_state);
+		state_change.SetString("_mediaplayer.display", mp3_current_playing);
+		state_change.SetInteger("volume.volume", volume * 100);
+		state_change.SetBoolean("volume.isMuted", mute);
+		weave_service->SetStateProperties(::kWeaveComponent, state_change, nullptr);
+	}
+}
+
+void DeviceDaemon::OnMp3Play(std::unique_ptr<weaved::Command> command)
+{
+	LOG(INFO) << "Start MP3 playing...";
+	if (!mp3_player_service_.get()) {
+		command->Abort("_system_error", "MP3 player service unavailable", nullptr);
+		return;
+	}
+	android::binder::Status status = mp3_player_service_->play();
+	if (!status.isOk()) {
+		command->AbortWithCustomError(status, nullptr);
+		return;
+	}
+	command->Complete({}, nullptr);
+
+	UpdateMediaPlayerTraitState();
+}
+
+void DeviceDaemon::OnMp3Pause(std::unique_ptr<weaved::Command> command)
+{
+	LOG(INFO) << "Pause MP3 playing...";
+	if (!mp3_player_service_.get()) {
+		command->Abort("_system_error", "MP3 player service unavailable", nullptr);
+		return;
+	}
+	android::binder::Status status = mp3_player_service_->pause();
+	if (!status.isOk()) {
+		command->AbortWithCustomError(status, nullptr);
+		return;
+	}
+	command->Complete({}, nullptr);
+
+	UpdateMediaPlayerTraitState();
+}
+
+void DeviceDaemon::OnMp3Stop(std::unique_ptr<weaved::Command> command)
+{
+	LOG(INFO) << "Stop MP3 playing...";
+	if (!mp3_player_service_.get()) {
+		command->Abort("_system_error", "MP3 player service unavailable", nullptr);
+		return;
+	}
+	android::binder::Status status = mp3_player_service_->stop();
+	if (!status.isOk()) {
+		command->AbortWithCustomError(status, nullptr);
+		return;
+	}
+	command->Complete({}, nullptr);
+
+	UpdateMediaPlayerTraitState();
+}
+
+void DeviceDaemon::OnMp3SetVolume(std::unique_ptr<weaved::Command> command)
+{
+	int level = command->GetParameter<int>("volume");
+	bool mute = command->GetParameter<bool>("isMuted");
+	float volume = mute? 0 : (float)level/100;
+	LOG(INFO) << "Received command to set the audio volume to " << volume;
+
+	if (!mp3_player_service_.get()) {
+		command->Abort("_system_error", "MP3 player service unavailable", nullptr);
+		return;
+	}
+	android::binder::Status status = mp3_player_service_->mute(mute);
+	if (!status.isOk()) {
+		command->AbortWithCustomError(status, nullptr);
+		return;
+	}
+	if (!mute)
+		status = mp3_player_service_->setVolume(volume);
+	if (!status.isOk()) {
+		command->AbortWithCustomError(status, nullptr);
+		return;
+	}
+	command->Complete({}, nullptr);
+
+	UpdateMediaPlayerTraitState();
 }
 
 class Board {

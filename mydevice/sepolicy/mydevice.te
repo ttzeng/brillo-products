@@ -25,3 +25,6 @@ allow_call_weave(mydevice)
 # sysfs accesses required by libmraa
 allow mydevice i2c_device:chr_file { read write ioctl open };
 allow mydevice sysfs:file { read write getattr open };
+
+allow mydevice mp3_player_service:service_manager find;
+binder_call(mydevice, srv-mp3-player)
