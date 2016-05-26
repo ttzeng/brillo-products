@@ -1,4 +1,4 @@
-## The Brillo based MP3 jukebox demo on Minnnowboard MAX
+## The Brillo based MP3 jukebox demo on Minnowboard MAX
 This folder contains the source code of the Brillo jukebox demo running on [MinnowBoard MAX](http://wiki.minnowboard.org/MinnowBoard_MAX) hardware board. The demo features Weave's standard [onOff](https://developers.google.com/weave/v1/reference/device-api/onOff) and [volume](https://developers.google.com/weave/v1/reference/device-api/volume) trait schemas, and an initial Arduino shim layer for [libmraa](http://iotdk.intel.com/docs/master/mraa/) to drive the MAX7219 LED arrays using the [sketch example](https://brainy-bits.com/tutorials/scroll-text-using-the-max7219-led-dot-matrix/) from Arduino community. The source code of the Weave Android companion app is available at [weave-apps](https://github.com/ttzeng/weave-apps/tree/master/MyWeaveApp) github repository.
 
 <img src="http://ttzeng.github.io/doc/assets/MinnowMax%20Brillo%20Jukebox%20IDF16.jpg"/ alt="The MinnowboardMAX Brillo Jukebox Demo">
