@@ -1,33 +1,39 @@
 package com.intel.otc.brillo.examples;
 
-import android.content.Context;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.service.headless.HomeService;
 import android.util.Log;
 import android.view.InputEvent;
 import android.view.KeyEvent;
 
-import java.io.IOException;
-
-public class MyTestService extends HomeService implements MediaPlayer.OnCompletionListener {
+public class MyTestService extends HomeService {
     private static final String TAG = "MyTestService";
     private static final int BUTTON_EDISON_RM_KEYCODE = 148;
+    private static final int BUTTON_EDISON_PWR_KEYCODE = 116;
 
-    private SongsManager sm;
-    private int currentSongIndex = 0;
-    private AudioManager am;
-    private MediaPlayer mp;
+    private HandlerThread mRunnerThread;
+    private Handler mRunnerThreadHandler;
+    private Mp3Player mp3Player;
 
     @Override
     public void onCreate() {
         Log.d(TAG, "Headless service created");
-        sm = new SongsManager();
-        // Get an instance of AudioManager for volume control
-        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        mp = new MediaPlayer();
-        mp.setOnCompletionListener(this);
-        playSong(currentSongIndex);
+
+        mRunnerThread = new HandlerThread("runnerThread");
+        mRunnerThread.start();
+        mRunnerThreadHandler = new Handler(mRunnerThread.getLooper());
+
+        mp3Player = new Mp3Player(this);
+        new Thread(mp3Player).start();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mRunnerThread != null) {
+            mRunnerThread.quitSafely();
+        }
+        Log.d(TAG, "Headless service destroyed");
     }
 
     @Override
@@ -36,30 +42,12 @@ public class MyTestService extends HomeService implements MediaPlayer.OnCompleti
         if (((KeyEvent) event).getAction() == KeyEvent.ACTION_DOWN) {
             switch (((KeyEvent) event).getScanCode()) {
                 case BUTTON_EDISON_RM_KEYCODE:
-                    if (mp.isPlaying()) {
-                        mp.pause();
-                    } else {
-                        mp.start();
-                    }
+                    mp3Player.Play();
+                    break;
+                case BUTTON_EDISON_PWR_KEYCODE:
+                    mp3Player.Stop();
+                    break;
             }
-        }
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer player) {
-        if (++currentSongIndex >= sm.size())
-            currentSongIndex = 0;
-    }
-
-    public void playSong(int index) {
-        try {
-            Log.d(TAG, "Playing " + sm.getSongTitle(index));
-            mp.reset();
-            mp.setDataSource(sm.getSongPath(index));
-            mp.prepare();
-            mp.start();
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
         }
     }
 }

@@ -5,7 +5,7 @@ android {
     buildToolsVersion "24.0.0"
 
     defaultConfig {
-        applicationId "com.intel.otc.brillo.examples"
+        applicationId "com.intel.otc.brillo.examples.demo"
         minSdkVersion 21
         targetSdkVersion 24
         versionCode 1
