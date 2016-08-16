@@ -15,6 +15,7 @@ public class MyTestService extends HomeService {
     private HandlerThread mRunnerThread;
     private Handler mRunnerThreadHandler;
     private Mp3Player mp3Player;
+    private LcdDisplayManager lcdDisplayManager;
 
     @Override
     public void onCreate() {
@@ -26,6 +27,9 @@ public class MyTestService extends HomeService {
 
         mp3Player = new Mp3Player(this);
         new Thread(mp3Player).start();
+
+        lcdDisplayManager = new LcdDisplayManager(mp3Player);
+        new Thread(lcdDisplayManager).start();
     }
 
     @Override
