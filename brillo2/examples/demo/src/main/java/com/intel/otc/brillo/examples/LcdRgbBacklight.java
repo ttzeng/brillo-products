@@ -119,7 +119,7 @@ public class LcdRgbBacklight {
         setRGB(255, 255, 255);
     }
 
-    public void write(String s) {
+    public synchronized void write(String s) {
         try {
             I2cDevice dev = mService.openI2cDevice(I2C, LCD_ADDRESS);
             for (byte ch : s.getBytes())
@@ -130,75 +130,75 @@ public class LcdRgbBacklight {
         }
     }
 
-    public void clear() {
+    public synchronized void clear() {
         command(LCD_CLEARDISPLAY);        // clear display, set cursor position to zero
         delayMicroseconds(2000);          // this command takes a long time!
     }
 
-    public void home() {
+    public synchronized void home() {
         command(LCD_RETURNHOME);        // set cursor position to zero
         delayMicroseconds(2000);        // this command takes a long time!
     }
 
-    public void noDisplay() {
+    public synchronized void noDisplay() {
         _displaycontrol &= ~LCD_DISPLAYON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
-    public void display() {
+    public synchronized void display() {
         _displaycontrol |= LCD_DISPLAYON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
-    public void setCursor(int col, int row) {
+    public synchronized void setCursor(int col, int row) {
         col = (row == 0 ? col|0x80 : col|0xc0);
         command(col);
     }
 
-    public void noCursor() {
+    public synchronized void noCursor() {
         _displaycontrol &= ~LCD_CURSORON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
-    public void cursor() {
+    public synchronized void cursor() {
         _displaycontrol |= LCD_CURSORON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
-    public void noBlink() {
+    public synchronized void noBlink() {
         _displaycontrol &= ~LCD_BLINKON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
-    public void blink() {
+    public synchronized void blink() {
         _displaycontrol |= LCD_BLINKON;
         command(LCD_DISPLAYCONTROL | _displaycontrol);
     }
 
-    public void scrollDisplayLeft() {
+    public synchronized void scrollDisplayLeft() {
         command(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVELEFT);
     }
 
-    public void scrollDisplayRight() {
+    public synchronized void scrollDisplayRight() {
         command(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVERIGHT);
     }
 
-    public void leftToRight() {
+    public synchronized void leftToRight() {
         _displaymode |= LCD_ENTRYLEFT;
         command(LCD_ENTRYMODESET | _displaymode);
     }
 
-    public void rightToLeft() {
+    public synchronized void rightToLeft() {
         _displaymode &= ~LCD_ENTRYLEFT;
         command(LCD_ENTRYMODESET | _displaymode);
     }
 
-    public void autoscroll() {
+    public synchronized void autoscroll() {
         _displaymode |= LCD_ENTRYSHIFTINCREMENT;
         command(LCD_ENTRYMODESET | _displaymode);
     }
 
-    public void noAutoscroll() {
+    public synchronized void noAutoscroll() {
         _displaymode &= ~LCD_ENTRYSHIFTINCREMENT;
         command(LCD_ENTRYMODESET | _displaymode);
     }
@@ -213,7 +213,7 @@ public class LcdRgbBacklight {
         }
     }
 
-    public void setRGB(int r, int g, int b) {
+    public synchronized void setRGB(int r, int g, int b) {
         setReg(REG_RED, r);
         setReg(REG_GREEN, g);
         setReg(REG_BLUE, b);
