@@ -7,6 +7,11 @@ import android.util.Log;
 import android.view.InputEvent;
 import android.view.KeyEvent;
 
+import org.iotivity.base.OcPlatform;
+import org.iotivity.base.ResourceProperty;
+
+import java.util.EnumSet;
+
 public class MyTestService extends HomeService {
     private static final String TAG = "MyTestService";
     private static final int BUTTON_EDISON_RM_KEYCODE = 148;
@@ -16,6 +21,9 @@ public class MyTestService extends HomeService {
     private Handler mRunnerThreadHandler;
     private Mp3Player mp3Player;
     private LcdDisplayManager lcdDisplayManager;
+
+    private OcServer ocServer;
+    private OcResourceBrightness ocBrightness;
 
     @Override
     public void onCreate() {
@@ -30,6 +38,13 @@ public class MyTestService extends HomeService {
 
         lcdDisplayManager = new LcdDisplayManager(mp3Player);
         new Thread(lcdDisplayManager).start();
+
+        ocServer = new OcServer(this);
+        ocBrightness = new OcResourceBrightness(
+                "/brillo/mp3player/brightness",
+                OcPlatform.DEFAULT_INTERFACE,
+                EnumSet.of(ResourceProperty.DISCOVERABLE, ResourceProperty.OBSERVABLE),
+                100, lcdDisplayManager);
     }
 
     @Override

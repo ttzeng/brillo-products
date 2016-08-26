@@ -4,7 +4,9 @@ import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
 
-public class LcdDisplayManager implements Runnable {
+public class LcdDisplayManager implements Runnable,
+        OcResourceBrightness.OnBrightnessChangeListener
+{
     private static final String TAG = LcdDisplayManager.class.getSimpleName();
     private static final int Service_Interval_In_Msec = 500;
 
@@ -58,6 +60,14 @@ public class LcdDisplayManager implements Runnable {
             } catch (InterruptedException e) {
                 // Ignore sleep nterruption
             }
+    }
+
+    @Override
+    public void onBrightnessChanged(int brightness) {
+        if (0 <= brightness && brightness <= 100) {
+            int c = brightness * 255 / 100;
+            lcd.setRGB(c, c, c);
+        }
     }
 
     private void display(int row, String s) {
