@@ -1,1 +1,1 @@
-include ':demo', ':iotivity-base-x86-release', ':simpleserver'
+include ':demo', ':iotivity-base-x86-release', ':simpleserver', ':companion'

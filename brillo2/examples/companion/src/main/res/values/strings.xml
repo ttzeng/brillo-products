@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Demo Companion</string>
+    <string name="label_brightness">Brightness</string>
+</resources>
