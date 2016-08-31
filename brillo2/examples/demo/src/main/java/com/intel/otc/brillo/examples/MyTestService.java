@@ -38,6 +38,7 @@ public class MyTestService extends HomeService {
 
         lcdDisplayManager = new LcdDisplayManager(mp3Player);
         new Thread(lcdDisplayManager).start();
+        mp3Player.subscribeStateChangeNotification(lcdDisplayManager);
 
         ocServer = new OcServer(this);
         ocBrightness = new OcResourceBrightness(
