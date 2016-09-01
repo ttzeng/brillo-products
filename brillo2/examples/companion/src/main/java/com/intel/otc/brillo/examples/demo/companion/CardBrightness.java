@@ -1,7 +1,6 @@
 package com.intel.otc.brillo.examples.demo.companion;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.SeekBar;
@@ -15,24 +14,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CardBrightness extends RecyclerView.ViewHolder implements
-        OcResource.OnGetListener,
-        OcResource.OnPostListener,
-        SeekBar.OnSeekBarChangeListener
-{
+public class CardBrightness extends CardOcResource implements SeekBar.OnSeekBarChangeListener {
     private static final String TAG = CardBrightness.class.getSimpleName();
     public  static final String RESOURCE_TYPE = "oic.r.light.brightness";
     private static final String KEY_BRIGHTNESS = "brightness";
 
-    private Context mContext;
     private SeekBar mSeekBarBrightness;
-    private OcResource mOcResource = null;
 
     CardBrightness(View parentView, Context context) {
-        super(parentView);
-        mContext = context;
+        super(parentView, context);
         mSeekBarBrightness = (SeekBar) parentView.findViewById(R.id.brightnessLevel);
         mSeekBarBrightness.setOnSeekBarChangeListener(this);
+    }
+
+    @Override
+    public void bindResource(OcResource resource) {
+        super.bindResource(resource);
+        getOcRepresentation();
     }
 
     @Override
@@ -47,22 +45,12 @@ public class CardBrightness extends RecyclerView.ViewHolder implements
     }
 
     @Override
-    public synchronized void onGetFailed(Throwable throwable) {
-        raiseException("GET", throwable);
-    }
-
-    @Override
     public synchronized void onPostCompleted(List<OcHeaderOption> list, OcRepresentation rep) {
         try {
             mSeekBarBrightness.setProgress((int) rep.getValue(KEY_BRIGHTNESS));
         } catch (OcException e) {
             Log.e(TAG, e.toString());
         }
-    }
-
-    @Override
-    public synchronized void onPostFailed(Throwable throwable) {
-        raiseException("POST", throwable);
     }
 
     @Override
@@ -86,12 +74,7 @@ public class CardBrightness extends RecyclerView.ViewHolder implements
     public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
-    public void bindResource(OcResource resource) {
-        mOcResource = resource;
-        getRepresentation();
-    }
-
-    private void getRepresentation() {
+    private void getOcRepresentation() {
         display("Getting representation of " + mOcResource.getHost() + mOcResource.getUri());
         new Thread(new Runnable() {
             @Override
@@ -104,22 +87,5 @@ public class CardBrightness extends RecyclerView.ViewHolder implements
                 }
             }
         }).start();
-    }
-
-    private synchronized void raiseException(String op, Throwable throwable) {
-        if (throwable instanceof OcException) {
-            OcException ocException = (OcException) throwable;
-            Log.e(TAG, "Failed to " + op + " representation [" + ocException.getErrorCode() + "]\n" + ocException.toString());
-        }
-    }
-
-    private void display(final String text) {
-        final MainActivity activity = (MainActivity) mContext;
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                activity.display(text);
-            }
-        });
     }
 }
