@@ -57,10 +57,10 @@ public class LcdDisplayManager implements Runnable,
         switch (state) {
             case Idle:
                 lcd.clear();
+                timeEscapedInMsec = 0;
                 break;
             case Playing:
                 display(0, mp3Player.getCurrentTitle());
-                timeEscapedInMsec = 0;
                 break;
         }
     }
