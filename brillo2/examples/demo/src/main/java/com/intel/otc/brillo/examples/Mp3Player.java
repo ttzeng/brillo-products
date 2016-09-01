@@ -104,7 +104,7 @@ public class Mp3Player implements Runnable,
     }
 
     public String getCurrentTitle() {
-        return (mState == MediaState.Playing)? sm.getSongTitle(currentSongIndex) : null;
+        return (mState != MediaState.Idle)? sm.getSongTitle(currentSongIndex) : null;
     }
 
     private void playSong(int index) {
