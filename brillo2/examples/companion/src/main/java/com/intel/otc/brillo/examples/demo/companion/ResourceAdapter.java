@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.iotivity.base.OcException;
 import org.iotivity.base.OcResource;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private static final String TAG = ResourceAdapter.class.getSimpleName();
     private enum CardTypes {
         Brightness,
+        Mp3Player,
     }
 
     private Context mContext;
@@ -28,6 +30,7 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public ResourceAdapter(Context context) {
         mContext = context;
         mSupportedResourceType.put(CardBrightness.RESOURCE_TYPE, CardTypes.Brightness);
+        mSupportedResourceType.put(CardMp3Player.RESOURCE_TYPE, CardTypes.Mp3Player);
     }
 
     @Override
@@ -43,6 +46,9 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (viewType == CardTypes.Brightness.ordinal()) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_brightness, parent, false);             ;
             card = new CardBrightness(v, mContext);
+        } else if (viewType == CardTypes.Mp3Player.ordinal()) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_audioplayer, parent, false);
+            card = new CardMp3Player(v, mContext);
         }
         return card;
     }
@@ -52,6 +58,8 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Log.d(TAG, "onBindViewHolder(" + position + ")");
         if (CardTypes.Brightness == mCardList.get(position).first) {
             ((CardBrightness) holder).bindResource(mCardList.get(position).second);
+        } else if (CardTypes.Mp3Player == mCardList.get(position).first) {
+            ((CardMp3Player) holder).bindResource(mCardList.get(position).second);
         }
     }
 
@@ -74,6 +82,12 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void clear() {
+        try {
+            for (Pair<CardTypes, OcResource> card : mCardList)
+                card.second.cancelObserve();
+        } catch (OcException e) {
+            Log.e(TAG, e.toString());
+        }
         mCardList.clear();
         notifyDataSetChanged();
     }

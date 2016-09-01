@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onResume");
         super.onResume();
 
-        mResourceAdapter.clear();
         // Finding Brightness resources
         findResource(CardBrightness.RESOURCE_TYPE);
         findResource(CardMp3Player.RESOURCE_TYPE);
@@ -62,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         // Another activity comes into the foreground
         Log.d(TAG, "onPause");
+        mResourceAdapter.clear();
         super.onPause();
     }
 
