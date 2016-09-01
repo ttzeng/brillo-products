@@ -19,10 +19,13 @@ import java.util.List;
 
 abstract class OcResourceBase implements OcPlatform.EntityHandler {
     private static final String TAG = OcResourceBase.class.getSimpleName();
+    protected static final long Notifier_Default_Interval_In_Msec = 1000;
     protected static int SUCCESS = 200;
 
     protected OcResourceHandle mHandle = null;
     protected List<Byte> mObservationIds = new LinkedList<>();
+    protected Thread mObserverNotifier = null;
+    protected long mNotifyInterval = Notifier_Default_Interval_In_Msec;
 
     protected abstract OcRepresentation getOcRepresentation();
     protected abstract void setOcRepresentation(OcRepresentation rep);
@@ -34,6 +37,11 @@ abstract class OcResourceBase implements OcPlatform.EntityHandler {
                 Log.d(TAG, "Resource unregistered");
             } catch (OcException e) {
                 error(e, "Failed to unregister resource");
+            }
+            if (null != mObserverNotifier) {
+                mObserverNotifier.interrupt();
+                Log.d(TAG, "Observer notifier thread stopped");
+                mObserverNotifier = null;
             }
             mHandle = null;
         }
@@ -135,7 +143,7 @@ abstract class OcResourceBase implements OcPlatform.EntityHandler {
         return result;
     }
 
-    protected EntityHandlerResult handleObserver(OcResourceRequest request) {
+    protected EntityHandlerResult handleObserver(final OcResourceRequest request) {
         ObservationInfo observationInfo = request.getObservationInfo();
         Byte observationId = observationInfo.getOcObservationId();
         switch (observationInfo.getObserveAction()) {
@@ -146,26 +154,26 @@ abstract class OcResourceBase implements OcPlatform.EntityHandler {
                 mObservationIds.remove(observationId);
                 break;
         }
-        return EntityHandlerResult.OK;
-    }
-
-    protected void notifyObservers() {
-        if (mObservationIds.size() > 0) {
-            new Thread(new Runnable() {
+        if (null == mObserverNotifier) {
+            mObserverNotifier = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        Log.d(TAG, "Notifying observers...");
-                        OcResourceResponse response = new OcResourceResponse();
-                        response.setErrorCode(SUCCESS);
-                        response.setResourceRepresentation(getOcRepresentation());
-                        OcPlatform.notifyListOfObservers(mHandle, mObservationIds, response);
-                    } catch (OcException e) {
-                        Log.e(TAG, e.toString());
-                    }
+                    while (true)
+                        try {
+                            mObserverNotifier.sleep(mNotifyInterval);
+                            if (mObservationIds.size() > 0) {
+                                Log.d(TAG, "Notifying observers...");
+                                OcPlatform.notifyAllObservers(mHandle);
+                            }
+                        } catch (OcException | InterruptedException e) {
+                            Log.e(TAG, e.toString());
+                            mObservationIds.clear();
+                        }
                 }
-            }).start();
+            });
+            mObserverNotifier.start();
         }
+        return EntityHandlerResult.OK;
     }
 
     protected EntityHandlerResult sendResponse(OcResourceResponse response) {
