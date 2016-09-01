@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         mResourceAdapter.clear();
         // Finding Brightness resources
         findResource(CardBrightness.RESOURCE_TYPE);
+        findResource(CardMp3Player.RESOURCE_TYPE);
     }
 
     @Override
