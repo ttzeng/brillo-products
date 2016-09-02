@@ -25,6 +25,7 @@ public class MyTestService extends HomeService {
     private OcServer ocServer;
     private OcResourceBrightness ocBrightness;
     private OcResourceMp3Player ocMp3Player;
+    private OcResourceAudioControl ocAudioControl;
 
     @Override
     public void onCreate() {
@@ -49,6 +50,11 @@ public class MyTestService extends HomeService {
                 100, lcdDisplayManager);
         ocMp3Player = new OcResourceMp3Player(
                 "/brillo/mp3player",
+                OcPlatform.DEFAULT_INTERFACE,
+                EnumSet.of(ResourceProperty.DISCOVERABLE, ResourceProperty.OBSERVABLE),
+                mp3Player);
+        ocAudioControl = new OcResourceAudioControl(
+                "/brillo/mp3player/volume",
                 OcPlatform.DEFAULT_INTERFACE,
                 EnumSet.of(ResourceProperty.DISCOVERABLE, ResourceProperty.OBSERVABLE),
                 mp3Player);

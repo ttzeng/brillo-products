@@ -24,6 +24,7 @@ public class Mp3Player implements Runnable,
     }
     private MediaState mState;
     private List<OnMediaStateChangeListener> mStateChangeListeners = new LinkedList<>();
+    private int volumeBeforeMute;
 
     public interface OnMediaStateChangeListener {
         void onMediaStateChanged(MediaState state);
@@ -83,6 +84,36 @@ public class Mp3Player implements Runnable,
             mp.stop();
             setMediaState(MediaState.Idle);
         }
+    }
+
+    public boolean isMuted() {
+        return am.isStreamMute(AudioManager.STREAM_MUSIC);
+    }
+
+    public void mute() {
+        if (!isMuted()) {
+            volumeBeforeMute = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+            am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+        }
+    }
+
+    public void unmute() {
+        if (isMuted()) {
+            am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, volumeBeforeMute, 0);
+        }
+    }
+
+    public int getMaxVolume() {
+        return am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    public int getCurrentVolume() {
+        return am.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    public void setVolume(int volume) {
+        am.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
     }
 
     private synchronized void setMediaState(MediaState newState) {

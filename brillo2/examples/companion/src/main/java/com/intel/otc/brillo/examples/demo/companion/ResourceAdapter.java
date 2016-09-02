@@ -20,6 +20,7 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private static final String TAG = ResourceAdapter.class.getSimpleName();
     private enum CardTypes {
         Brightness,
+        AudioControl,
         Mp3Player,
     }
 
@@ -30,6 +31,7 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public ResourceAdapter(Context context) {
         mContext = context;
         mSupportedResourceType.put(CardBrightness.RESOURCE_TYPE, CardTypes.Brightness);
+        mSupportedResourceType.put(CardAudioControl.RESOURCE_TYPE, CardTypes.AudioControl);
         mSupportedResourceType.put(CardMp3Player.RESOURCE_TYPE, CardTypes.Mp3Player);
     }
 
@@ -44,8 +46,11 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Log.d(TAG, "onCreateViewHolder(" + viewType + ")");
         RecyclerView.ViewHolder card = null;
         if (viewType == CardTypes.Brightness.ordinal()) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_brightness, parent, false);             ;
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_brightness, parent, false);
             card = new CardBrightness(v, mContext);
+        } else if (viewType == CardTypes.AudioControl.ordinal()) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_volume, parent, false);
+            card = new CardAudioControl(v, mContext);
         } else if (viewType == CardTypes.Mp3Player.ordinal()) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_audioplayer, parent, false);
             card = new CardMp3Player(v, mContext);
@@ -58,6 +63,8 @@ public class ResourceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Log.d(TAG, "onBindViewHolder(" + position + ")");
         if (CardTypes.Brightness == mCardList.get(position).first) {
             ((CardBrightness) holder).bindResource(mCardList.get(position).second);
+        } else if (CardTypes.AudioControl == mCardList.get(position).first) {
+            ((CardAudioControl) holder).bindResource(mCardList.get(position).second);
         } else if (CardTypes.Mp3Player == mCardList.get(position).first) {
             ((CardMp3Player) holder).bindResource(mCardList.get(position).second);
         }

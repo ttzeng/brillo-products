@@ -54,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Finding Brightness resources
         findResource(CardBrightness.RESOURCE_TYPE);
+        // Finding Audio Control resources
+        findResource(CardAudioControl.RESOURCE_TYPE);
+        // Finding vendor audio player resources
         findResource(CardMp3Player.RESOURCE_TYPE);
     }
 
