@@ -53,6 +53,7 @@ public class MyTestService extends HomeService {
                 OcPlatform.DEFAULT_INTERFACE,
                 EnumSet.of(ResourceProperty.DISCOVERABLE, ResourceProperty.OBSERVABLE),
                 mp3Player);
+        mp3Player.subscribeStateChangeNotification(ocMp3Player);
         ocAudioControl = new OcResourceAudioControl(
                 "/brillo/mp3player/volume",
                 OcPlatform.DEFAULT_INTERFACE,

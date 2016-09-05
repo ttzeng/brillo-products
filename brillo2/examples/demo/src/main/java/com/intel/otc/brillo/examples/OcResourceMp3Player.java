@@ -9,13 +9,13 @@ import org.iotivity.base.ResourceProperty;
 
 import java.util.EnumSet;
 
-public class OcResourceMp3Player extends OcResourceBase {
+public class OcResourceMp3Player extends OcResourceBase implements Mp3Player.OnMediaStateChangeListener {
     private static final String TAG = OcResourceMp3Player.class.getSimpleName();
     public  static final String RESOURCE_TYPE = "x.com.intel.demo.mp3player";
     private static final String KEY_MEDIASTATES = "mediaStates";
     private static final String KEY_STATE = "state";
     private static final String KEY_TITLE = "title";
-    private static final long Notifier_Interval_In_Msec = 1000;
+    private static final long Notifier_Interval_In_Msec = 60000;
 
     private Mp3Player mp3Player;
 
@@ -64,6 +64,19 @@ public class OcResourceMp3Player extends OcResourceBase {
             }
         } catch (OcException e) {
             error(e, "Failed to get representation value");
+        }
+    }
+
+    @Override
+    public void onMediaStateChanged(Mp3Player.MediaState state) {
+        try {
+            if (mObservationIds.size() > 0) {
+                Log.d(TAG, "Notifying observers as media state changed...");
+                OcPlatform.notifyAllObservers(mHandle);
+            }
+        } catch (OcException e) {
+            Log.e(TAG, e.toString());
+            mObservationIds.clear();
         }
     }
 }
