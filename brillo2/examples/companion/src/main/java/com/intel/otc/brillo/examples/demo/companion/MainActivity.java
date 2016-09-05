@@ -6,17 +6,22 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String KEY_SHOW_LOGS = "showLogs";
+    private static final String KEY_CONSOLE_DUMP = "consoleDump";
 
     private OcClient ocClient;
     private ResourceAdapter mResourceAdapter;
     private ScrollView viewScroll;
     private TextView viewConsole;
+    private boolean showLogs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +46,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (null == savedInstanceState) {
             // This app is started 1st time
+            showLogs = false;
         } else {
-            viewConsole.setText(savedInstanceState.getString("consoleDump"));
+            showLogs = savedInstanceState.getBoolean(KEY_SHOW_LOGS);
+            viewConsole.setText(savedInstanceState.getString(KEY_CONSOLE_DUMP));
         }
     }
 
@@ -69,10 +76,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d(TAG, "onCreateOptionsMenu");
+        getMenuInflater().inflate(R.menu.menu_config, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        Log.d(TAG, "onPrepareOptionsMenu");
+        super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.option_show_logs).setChecked(showLogs);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(TAG, "onOptionsItemSelected(" + item.toString() + ")");
+        switch (item.getItemId()) {
+            case R.id.option_show_logs:
+                if (!(showLogs = !showLogs))
+                    viewConsole.setText("");
+                item.setChecked(showLogs);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "onSaveInstanceState");
         super.onSaveInstanceState(outState);
-        outState.putString("consoleDump", viewConsole.getText().toString());
+        outState.putBoolean(KEY_SHOW_LOGS, showLogs);
+        outState.putString(KEY_CONSOLE_DUMP, viewConsole.getText().toString());
     }
 
     @Override
@@ -80,7 +116,8 @@ public class MainActivity extends AppCompatActivity {
         // Retain console output on screen orientation changed
         Log.d(TAG, "onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
-        viewConsole.setText(savedInstanceState.getString("consoleDump"));
+        showLogs = savedInstanceState.getBoolean(KEY_SHOW_LOGS);
+        viewConsole.setText(savedInstanceState.getString(KEY_CONSOLE_DUMP));
     }
 
     private void findResource(String ocResourceType) {
@@ -90,7 +127,9 @@ public class MainActivity extends AppCompatActivity {
 
     public synchronized void display(final String text) {
         Log.i(TAG, text);
-        viewConsole.append("\n" + text);
-        viewScroll.fullScroll(View.FOCUS_DOWN);
+        if (showLogs) {
+            viewConsole.append("\n" + text);
+            viewScroll.fullScroll(View.FOCUS_DOWN);
+        }
     }
 }
