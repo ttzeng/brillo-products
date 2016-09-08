@@ -24,7 +24,10 @@ This repository contains the source code of the Brillo 2.0 based Jukebox demo th
 </pre>
 2. Download and move the [prebuilt Iotivity base library for Android](https://drive.google.com/open?id=0B8-BcoYPJr2LQkZzZ3lpekh0UkU) into <code>iotivity-base-x86-release</code> folder and import the project in Android Studio.
 3. The project contains two modules, select the module <code>demo</code> or <code>companion</code> in the Project panel, and then click <b>Build</b> > <b>Make Selected Modules</b> to build the module using Gradle.
-4. Click <b>Run</b> to generates a debug APK and deploys to the target device.
+4. For setting up the MP3 player demo on the Brillo device, copy some MP3 files to the <code>/sdcard/Music/</code> folder on the device manually with the following command.
+<pre>$ adb push file.mp3 /sdcard/Music
+</pre>
+5. Click <b>Run</b> to generates a debug APK and deploys to the target device.
 
 #### Screenshots
 - Complete set  
