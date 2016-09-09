@@ -204,12 +204,14 @@ public class LcdRgbBacklight {
     }
 
     private void command(int value) {
+        I2cDevice dev = null;
         try {
-            I2cDevice dev = mService.openI2cDevice(I2C, LCD_ADDRESS);
+            dev = mService.openI2cDevice(I2C, LCD_ADDRESS);
             dev.writeRegByte(0x80, value);
             dev.close();
         } catch (RemoteException | ErrnoException e) {
-            Log.e(TAG, "Exception on writing " + value + " to LCD");
+            Log.e(TAG, "Exception on writing " + value + " to LCD : " + e.toString());
+            if (null != dev) dev.close();
         }
     }
 
@@ -220,12 +222,14 @@ public class LcdRgbBacklight {
     }
 
     private void setReg(byte addr, int dta) {
+        I2cDevice dev = null;
         try {
-            I2cDevice dev = mService.openI2cDevice(I2C, RGB_ADDRESS);
+            dev = mService.openI2cDevice(I2C, RGB_ADDRESS);
             dev.writeRegByte(addr, dta);
             dev.close();
         } catch (RemoteException | ErrnoException e) {
-            Log.e(TAG, "Exception on writing RGB[" + addr + "]");
+            Log.e(TAG, "Exception on writing RGB[" + addr + "] : " + e.toString());
+            if (null != dev) dev.close();
         }
     }
 
