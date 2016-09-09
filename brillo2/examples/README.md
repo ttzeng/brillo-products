@@ -28,6 +28,17 @@ This repository contains the source code of the Brillo 2.0 based Jukebox demo th
 <pre>$ adb push file.mp3 /sdcard/Music
 </pre>
 5. Click <b>Run</b> to generates a debug APK and deploys to the target device.
+6. Enter the following command to setup the wifi on the Brillo device.
+<pre>$ adb shell am startservice \
+        -n com.google.wifisetup/.WifiSetupService \
+        -a WifiSetupService.Connect \
+        -e ssid <ssid> \
+        -e passphrase <passphrase>
+</pre>To disconnect and clear wifi configs:
+<pre>$ adb shell am startservice \
+        -n com.google.wifisetup/.WifiSetupService \
+        -a WifiSetupService.Reset
+</pre>
 
 #### Screenshots
 - Complete set  
