@@ -120,13 +120,15 @@ public class LcdRgbBacklight {
     }
 
     public synchronized void write(String s) {
+        I2cDevice dev = null;
         try {
-            I2cDevice dev = mService.openI2cDevice(I2C, LCD_ADDRESS);
+            dev = mService.openI2cDevice(I2C, LCD_ADDRESS);
             for (byte ch : s.getBytes())
                 dev.writeRegByte(0x40, ch);
             dev.close();
         } catch (RemoteException | ErrnoException e) {
             Log.e(TAG, "Exception on writing String '" + s + "' to LCD");
+            if (null != dev) dev.close();
         }
     }
 

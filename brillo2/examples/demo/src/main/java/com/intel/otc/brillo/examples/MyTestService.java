@@ -24,6 +24,7 @@ public class MyTestService extends HomeService {
 
     private OcServer ocServer;
     private OcResourceBrightness ocBrightness;
+    private OcResourceColorRGB ocColorRGB;
     private OcResourceMp3Player ocMp3Player;
     private OcResourceAudioControl ocAudioControl;
 
@@ -48,6 +49,11 @@ public class MyTestService extends HomeService {
                 OcPlatform.DEFAULT_INTERFACE,
                 EnumSet.of(ResourceProperty.DISCOVERABLE, ResourceProperty.OBSERVABLE),
                 100, lcdDisplayManager);
+        ocColorRGB = new OcResourceColorRGB(
+                "/brillo/mp3player/rgb",
+                OcPlatform.DEFAULT_INTERFACE,
+                EnumSet.of(ResourceProperty.DISCOVERABLE, ResourceProperty.OBSERVABLE),
+                lcdDisplayManager);
         ocMp3Player = new OcResourceMp3Player(
                 "/brillo/mp3player",
                 OcPlatform.DEFAULT_INTERFACE,

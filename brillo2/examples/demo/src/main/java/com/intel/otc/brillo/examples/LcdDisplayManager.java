@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 public class LcdDisplayManager implements Runnable,
         Mp3Player.OnMediaStateChangeListener,
+        OcResourceColorRGB.OnRGBChangedListener,
         OcResourceBrightness.OnBrightnessChangeListener
 {
     private static final String TAG = LcdDisplayManager.class.getSimpleName();
@@ -71,6 +72,11 @@ public class LcdDisplayManager implements Runnable,
             int c = brightness * 255 / 100;
             lcd.setRGB(c, c, c);
         }
+    }
+
+    @Override
+    public void onRGBChangedListener(int red, int green, int blue) {
+        lcd.setRGB(red, green, blue);
     }
 
     private void display(int row, String s) {

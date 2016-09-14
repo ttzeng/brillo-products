@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Demo Companion</string>
     <string name="label_brightness">Brightness</string>
+    <string name="label_rgbpicker">Colour</string>
     <string name="label_volume">Audio Volume</string>
     <string name="label_mp3player">MP3 Player</string>
     <string name="option_show_logs">Show Logs</string>
