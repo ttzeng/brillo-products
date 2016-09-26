@@ -1,11 +1,16 @@
 OCF Compliant Brillo Jukebox Demo
 =====
 
-This repository contains the source code of the Brillo 2.0 based Jukebox demo that consists of a MP3 player and its Android companion app. The MP3 player is designed for running on [Intel Edison with Arduino breakout board](https://www.arduino.cc/en/ArduinoCertified/IntelEdison) with [Grove LCD RGB backlight module](http://wiki.seeed.cc/Grove/Display/Grove_LCD_RGB_Backlight/) to display the played MP3 titles, it also integrates the [Iotivity base library for Android](https://api-docs.iotivity.org/latest-java/index.html) to be discovered and controlled by the companion app via [OCF](https://openconnectivity.org/) standards. The demo represents the jukebox device as three [standard OC resources](https://openconnectivity.org/wp-content/uploads/2016/06/OIC_1.1_Candidate_Specification.zip) of type Brightness, Colour RGB, and Audio Controls, and a vendor proprietary media player resource for controlling MP3 playback.
+This repository contains the source code of the Brillo 2.0 based Jukebox demo that consists of a MP3 player and its Android companion app. The MP3 player is designed for running on [Intel Edison Kit for Arduino](https://www.arduino.cc/en/ArduinoCertified/IntelEdison) with [Grove LCD RGB backlight module](http://wiki.seeed.cc/Grove/Display/Grove_LCD_RGB_Backlight/) to display the played MP3 titles, it also integrates the [Iotivity base library for Android](https://api-docs.iotivity.org/latest-java/index.html) to be discovered and controlled by the companion app via [OCF](https://openconnectivity.org/) standards. The demo represents the jukebox device as three [standard OC resources](https://openconnectivity.org/wp-content/uploads/2016/06/OIC_1.1_Candidate_Specification.zip) of type Brightness, Colour RGB, and Audio Controls, and a vendor proprietary media player resource for controlling MP3 playback.
 
 ### Prebuilt Images
 - **MP3 Player**  
-  To setup the MP3 player demo on Intel Edison with Arduino breakout board, follows these [instructions](https://software.intel.com/en-us/flashing-firmware-with-flash-tool-lite) to flash the prebuilt Brillo OS image to the device before installing the MP3 player APK from the Android Studio.
+  To setup the MP3 player demo on Intel Edison Kit for Arduino, follows these [instructions](https://software.intel.com/en-us/flashing-firmware-with-flash-tool-lite) to flash the prebuilt Brillo OS image to the device before installing the MP3 player APK from the Android Studio. Note the Intel Platform Flash Tool only flashes the bootloader and fastboot image to the Edison board, the board will reboots to fastboot mode waiting for the rest of images from the host fastboot program. Run the <i>brillo-flashall-edison.sh</i> shell script included in the flashfile tarball to write the rest of images to the Edison board via fastboot protocol.
+<pre>$ cd &lt;unzipped flashfile folder&gt;
+$ ./brillo-flashall-edison.sh
+...
+$ ./fastboot continue  <i># exit fastboot mode &&; boot the system image</i>
+</pre>
     + [Prebuilt Brillo OS image](https://drive.google.com/open?id=0B8-BcoYPJr2LZ2N3am5NNGszRFk)
     + [Prebuilt Iotivity base library for Android](https://drive.google.com/open?id=0B8-BcoYPJr2LQkZzZ3lpekh0UkU)  
     <sup><i>Notes on building the library from [Iotivity](https://www.iotivity.org/) source  
@@ -32,8 +37,8 @@ This repository contains the source code of the Brillo 2.0 based Jukebox demo th
 <pre>$ adb shell am startservice \
         -n com.google.wifisetup/.WifiSetupService \
         -a WifiSetupService.Connect \
-        -e ssid <ssid> \
-        -e passphrase <passphrase>
+        -e ssid &lt;ssid&gt; \
+        -e passphrase &lt;passphrase&gt;
 </pre>To disconnect and clear wifi configs:
 <pre>$ adb shell am startservice \
         -n com.google.wifisetup/.WifiSetupService \
