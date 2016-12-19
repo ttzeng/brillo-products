@@ -1,24 +1,17 @@
 package com.intel.otc.brillo.examples;
 
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.service.headless.HomeService;
+import android.app.Activity;
+import android.os.Bundle;
 import android.util.Log;
-import android.view.InputEvent;
-import android.view.KeyEvent;
 
 import org.iotivity.base.OcPlatform;
 import org.iotivity.base.ResourceProperty;
 
 import java.util.EnumSet;
 
-public class MyTestService extends HomeService {
-    private static final String TAG = "MyTestService";
-    private static final int BUTTON_EDISON_RM_KEYCODE = 148;
-    private static final int BUTTON_EDISON_PWR_KEYCODE = 116;
+public class MainActivity extends Activity {
+    private static final String TAG = MainActivity.class.getSimpleName();
 
-    private HandlerThread mRunnerThread;
-    private Handler mRunnerThreadHandler;
     private Mp3Player mp3Player;
     private LcdDisplayManager lcdDisplayManager;
 
@@ -29,12 +22,9 @@ public class MyTestService extends HomeService {
     private OcResourceAudioControl ocAudioControl;
 
     @Override
-    public void onCreate() {
-        Log.d(TAG, "Headless service created");
-
-        mRunnerThread = new HandlerThread("runnerThread");
-        mRunnerThread.start();
-        mRunnerThreadHandler = new Handler(mRunnerThread.getLooper());
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
 
         mp3Player = new Mp3Player(this);
         new Thread(mp3Player).start();
@@ -68,25 +58,8 @@ public class MyTestService extends HomeService {
     }
 
     @Override
-    public void onDestroy() {
-        if (mRunnerThread != null) {
-            mRunnerThread.quitSafely();
-        }
-        Log.d(TAG, "Headless service destroyed");
-    }
-
-    @Override
-    public void onInputEvent(InputEvent event) {
-        Log.d(TAG, "Input event received: " + event);
-        if (((KeyEvent) event).getAction() == KeyEvent.ACTION_DOWN) {
-            switch (((KeyEvent) event).getScanCode()) {
-                case BUTTON_EDISON_RM_KEYCODE:
-                    mp3Player.Play();
-                    break;
-                case BUTTON_EDISON_PWR_KEYCODE:
-                    mp3Player.Stop();
-                    break;
-            }
-        }
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
     }
 }

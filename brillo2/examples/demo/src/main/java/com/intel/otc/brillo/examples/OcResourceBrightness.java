@@ -38,7 +38,7 @@ public class OcResourceBrightness extends OcResourceBase {
     }
 
     protected EntityHandlerResult handleGetRequest(OcResourceRequest request) {
-        OcResourceResponse response = new OcResourceResponse();
+        final OcResourceResponse response = new OcResourceResponse();
         response.setRequestHandle(request.getRequestHandle());
         response.setResourceHandle(request.getResourceHandle());
         new Thread(new Runnable() {

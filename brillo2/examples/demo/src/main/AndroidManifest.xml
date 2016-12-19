@@ -7,14 +7,17 @@
         android:allowBackup="true"
         android:icon="@android:drawable/sym_def_app_icon"
         android:label="@string/app_name">
-        <service
-            android:name="com.intel.otc.brillo.examples.MyTestService"
+        <uses-library android:name="com.google.android.things"/>
+        <activity android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.service.headless.HomeService" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- The IoTLauncher will launch an app with the following intent filter -->
+                <category android:name="android.intent.category.IOT_LAUNCHER"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </service>
+        </activity>
 
     </application>
 

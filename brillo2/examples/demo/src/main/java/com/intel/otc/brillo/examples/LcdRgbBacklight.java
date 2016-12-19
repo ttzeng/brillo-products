@@ -1,11 +1,11 @@
 package com.intel.otc.brillo.examples;
 
-import android.os.RemoteException;
-import android.pio.I2cDevice;
-import android.pio.PeripheralManagerService;
-import android.system.ErrnoException;
 import android.util.Log;
 
+import com.google.android.things.pio.I2cDevice;
+import com.google.android.things.pio.PeripheralManagerService;
+
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /*
@@ -125,10 +125,12 @@ public class LcdRgbBacklight {
             dev = mService.openI2cDevice(I2C, LCD_ADDRESS);
             for (byte ch : s.getBytes())
                 dev.writeRegByte(0x40, ch);
-            dev.close();
-        } catch (RemoteException | ErrnoException e) {
+        } catch (IOException e) {
             Log.e(TAG, "Exception on writing String '" + s + "' to LCD");
-            if (null != dev) dev.close();
+        }
+        try {
+            if (dev != null) dev.close();
+        } catch (IOException e) {
         }
     }
 
@@ -209,11 +211,13 @@ public class LcdRgbBacklight {
         I2cDevice dev = null;
         try {
             dev = mService.openI2cDevice(I2C, LCD_ADDRESS);
-            dev.writeRegByte(0x80, value);
-            dev.close();
-        } catch (RemoteException | ErrnoException e) {
+            dev.writeRegByte(0x80, (byte) value);
+        } catch (IOException e) {
             Log.e(TAG, "Exception on writing " + value + " to LCD : " + e.toString());
-            if (null != dev) dev.close();
+        }
+        try {
+            if (dev != null) dev.close();
+        } catch (IOException e) {
         }
     }
 
@@ -227,17 +231,19 @@ public class LcdRgbBacklight {
         I2cDevice dev = null;
         try {
             dev = mService.openI2cDevice(I2C, RGB_ADDRESS);
-            dev.writeRegByte(addr, dta);
-            dev.close();
-        } catch (RemoteException | ErrnoException e) {
+            dev.writeRegByte(addr, (byte) dta);
+        } catch (IOException e) {
             Log.e(TAG, "Exception on writing RGB[" + addr + "] : " + e.toString());
-            if (null != dev) dev.close();
+        }
+        try {
+            if (dev != null) dev.close();
+        } catch (IOException e) {
         }
     }
 
-    private void delayMicroseconds(int msec) {
+    private void delayMicroseconds(int usec) {
         try {
-            TimeUnit.MICROSECONDS.sleep(msec);
+            TimeUnit.MICROSECONDS.sleep(usec);
         } catch (InterruptedException e) {
             // Ignore sleep interruption.
         }
