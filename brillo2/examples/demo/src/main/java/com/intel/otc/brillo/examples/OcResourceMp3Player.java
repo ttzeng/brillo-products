@@ -15,6 +15,8 @@ public class OcResourceMp3Player extends OcResourceBase implements Mp3Player.OnM
     private static final String KEY_MEDIASTATES = "mediaStates";
     private static final String KEY_STATE = "state";
     private static final String KEY_TITLE = "title";
+    private static final String KEY_PLAYLIST = "playList";
+    private static final String KEY_SELECT = "select";
     private static final long Notifier_Interval_In_Msec = 60000;
 
     private Mp3Player mp3Player;
@@ -42,6 +44,7 @@ public class OcResourceMp3Player extends OcResourceBase implements Mp3Player.OnM
                     Mp3Player.MediaState.Paused.toString(),
             });
             rep.setValue(KEY_STATE, mp3Player.getCurrentState().toString());
+            rep.setValue(KEY_PLAYLIST, mp3Player.getPlayList());
             String title = mp3Player.getCurrentTitle();
             if (null != title)
                 rep.setValue(KEY_TITLE, title);
@@ -61,6 +64,8 @@ public class OcResourceMp3Player extends OcResourceBase implements Mp3Player.OnM
                 else if (v.equals(Mp3Player.MediaState.Playing.toString()) ||
                          v.equals(Mp3Player.MediaState.Paused.toString()))
                     mp3Player.Play();
+            } else if (rep.hasAttribute(KEY_SELECT)) {
+                mp3Player.Play((int) rep.getValue(KEY_SELECT));
             }
         } catch (OcException e) {
             error(e, "Failed to get representation value");

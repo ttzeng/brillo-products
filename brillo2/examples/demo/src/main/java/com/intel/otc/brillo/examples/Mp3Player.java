@@ -79,6 +79,15 @@ public class Mp3Player implements Runnable,
         }
     }
 
+    public void Play(int index) {
+        if (0 <= index && index < sm.size()) {
+            if (mState != MediaState.Idle && index != currentSongIndex)
+                Stop();
+            currentSongIndex = index;
+            Play();
+        }
+    }
+
     public void Stop() {
         if (mState != MediaState.Idle) {
             mp.stop();
@@ -136,6 +145,13 @@ public class Mp3Player implements Runnable,
 
     public String getCurrentTitle() {
         return (mState != MediaState.Idle)? sm.getSongTitle(currentSongIndex) : null;
+    }
+
+    public String[] getPlayList() {
+        String[] titles = new String[sm.size()];
+        for (int i = 0; i < sm.size(); i++)
+            titles[i] = sm.getSongTitle(i);
+        return titles;
     }
 
     private void playSong(int index) {

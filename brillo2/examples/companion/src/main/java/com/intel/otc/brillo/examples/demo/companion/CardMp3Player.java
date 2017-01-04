@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.Spinner;
 
 import org.iotivity.base.ObserveType;
 import org.iotivity.base.OcException;
@@ -18,25 +20,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CardMp3Player extends CardOcResource {
+public class CardMp3Player extends CardOcResource implements AdapterView.OnItemSelectedListener {
     private static final String TAG = CardMp3Player.class.getSimpleName();
     public  static final String RESOURCE_TYPE = "x.com.intel.demo.mp3player";
     private static final String KEY_MEDIASTATES = "mediaStates";
     private static final String KEY_STATE = "state";
     private static final String KEY_TITLE = "title";
+    private static final String KEY_PLAYLIST = "playList";
+    private static final String KEY_SELECT = "select";
     private enum PlayerState {
         Idle, Playing, Paused
     }
 
     private List<String> mValidStates = null;
     private int mCurrentStateIndex = 0;
-    private TextView mTextViewTitle;
+    private String[] mPlayList = null;
+    private int mLastTitlePos = 0;
+    private Spinner mSpinnerTitle;
     private ImageButton mImageButtonPlayPause;
     private ImageButton mImageButtonStop;
 
     CardMp3Player(View parentView, Context context) {
         super(parentView, context);
-        mTextViewTitle = (TextView) parentView.findViewById(R.id.label_title);
+        mSpinnerTitle = (Spinner) parentView.findViewById(R.id.spinner_title);
+        mSpinnerTitle.setOnItemSelectedListener(this);
         mImageButtonPlayPause = (ImageButton) parentView.findViewById(R.id.btn_play_pause);
         mImageButtonPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,6 +122,36 @@ public class CardMp3Player extends CardOcResource {
         }).start();
     }
 
+    private void setOcRepresentation(final int pos) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OcRepresentation rep = new OcRepresentation();
+                    rep.setValue(KEY_SELECT, pos);
+                    Map<String, String> queryParams = new HashMap<>();
+                    mOcResource.post(rep, queryParams, CardMp3Player.this);
+                    display("Select '" + mPlayList[pos] + "'");
+                } catch (OcException e) {
+                    Log.e(TAG, e.toString());
+                }
+            }
+        }).start();
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
+        Log.e(TAG, "Selected: " + pos);
+        if (mLastTitlePos != pos) {
+            setOcRepresentation(pos);
+            mLastTitlePos = pos;
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+    }
+
     private void observeOcRepresentation() {
         new Thread(new Runnable() {
             @Override
@@ -132,6 +169,8 @@ public class CardMp3Player extends CardOcResource {
         try {
             if (null == mValidStates && rep.hasAttribute(KEY_MEDIASTATES))
                 mValidStates = Arrays.asList((String[]) rep.getValue(KEY_MEDIASTATES));
+            if (rep.hasAttribute(KEY_PLAYLIST))
+                mPlayList = rep.getValue(KEY_PLAYLIST);
             int state = mValidStates.indexOf(rep.getValue(KEY_STATE));
             if (PlayerState.Idle.ordinal() <= state && state <= PlayerState.Paused.ordinal()) {
                 mCurrentStateIndex = state;
@@ -147,7 +186,14 @@ public class CardMp3Player extends CardOcResource {
         ((Activity) mContext).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mTextViewTitle.setText(title);
+                if (mPlayList != null) {
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext, android.R.layout.simple_spinner_dropdown_item, mPlayList);
+                    mSpinnerTitle.setAdapter(adapter);
+                    int pos;
+                    if (title != null && (pos = adapter.getPosition(title)) >= 0)
+                        mLastTitlePos = pos;
+                    mSpinnerTitle.setSelection(mLastTitlePos);
+                }
                 mImageButtonStop.setEnabled(state != PlayerState.Idle.ordinal());
                 mImageButtonPlayPause.setImageResource((state == PlayerState.Playing.ordinal())?
                         android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
