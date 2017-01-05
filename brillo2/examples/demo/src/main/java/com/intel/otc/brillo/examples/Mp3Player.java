@@ -3,6 +3,7 @@ package com.intel.otc.brillo.examples;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.audiofx.Visualizer;
 import android.os.Process;
 import android.util.Log;
 
@@ -11,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Mp3Player implements Runnable,
+        Visualizer.OnDataCaptureListener,
         MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener {
     private static final String TAG = Mp3Player.class.getSimpleName();
 
@@ -19,15 +21,21 @@ public class Mp3Player implements Runnable,
     private int currentSongIndex = 0;
     private AudioManager am;
     private MediaPlayer mp;
+    private Visualizer visualizer;
     public enum MediaState {
         Idle, Playing, Paused
     }
     private MediaState mState;
     private List<OnMediaStateChangeListener> mStateChangeListeners = new LinkedList<>();
+    private List<OnVisualizerDataListener> mVisualizerDataListeners = new LinkedList<>();
     private int volumeBeforeMute;
 
     public interface OnMediaStateChangeListener {
         void onMediaStateChanged(MediaState state);
+    }
+
+    public interface OnVisualizerDataListener {
+        void onVisualizerDataCaptured(byte[] data);
     }
 
     public Mp3Player(Context context) {
@@ -46,6 +54,10 @@ public class Mp3Player implements Runnable,
         mp = new MediaPlayer();
         mp.setOnCompletionListener(this);
         mp.setOnPreparedListener(this);
+        visualizer = new Visualizer(mp.getAudioSessionId());
+        visualizer.setCaptureSize(visualizer.getCaptureSizeRange()[0]);
+        visualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate() / 2, false, true);
+        visualizer.setEnabled(false);
         setMediaState(MediaState.Idle);
     }
 
@@ -60,6 +72,7 @@ public class Mp3Player implements Runnable,
     @Override
     public void onPrepared(MediaPlayer player) {
         mp.start();
+        visualizer.setEnabled(true);
         setMediaState(MediaState.Playing);
     }
 
@@ -90,6 +103,7 @@ public class Mp3Player implements Runnable,
 
     public void Stop() {
         if (mState != MediaState.Idle) {
+            visualizer.setEnabled(false);
             mp.stop();
             setMediaState(MediaState.Idle);
         }
@@ -137,6 +151,24 @@ public class Mp3Player implements Runnable,
 
     public void unsubscribeStateChangeNotification(OnMediaStateChangeListener listener) {
         mStateChangeListeners.remove(listener);
+    }
+
+    @Override
+    public void onWaveFormDataCapture(Visualizer visualizer, byte[] waveform, int samplingRate) {
+    }
+
+    @Override
+    public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
+        for (OnVisualizerDataListener listener : mVisualizerDataListeners)
+            listener.onVisualizerDataCaptured(fft);
+    }
+
+    public void subscribeVisualizerData(OnVisualizerDataListener listener) {
+        mVisualizerDataListeners.add(listener);
+    }
+
+    public void unsubscribeVisualizerData(OnVisualizerDataListener listener) {
+        mVisualizerDataListeners.remove(listener);
     }
 
     public MediaState getCurrentState() {

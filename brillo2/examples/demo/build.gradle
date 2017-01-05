@@ -7,7 +7,10 @@ android {
     defaultConfig {
         applicationId "com.intel.otc.brillo.examples.demo"
         minSdkVersion 23
-        targetSdkVersion 24
+        // Audio visualizer needs to programmatically check for runtime permissions if it's targeting
+        // for Android 6.0 (Marshmallow, API 23), as Android 6.0 mandates apps to request permissions
+        // from the user at run-time, the system will ask the user to explicitly grant those permissions.
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
     }

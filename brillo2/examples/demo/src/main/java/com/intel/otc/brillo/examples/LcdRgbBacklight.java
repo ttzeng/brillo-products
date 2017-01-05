@@ -207,6 +207,12 @@ public class LcdRgbBacklight {
         command(LCD_ENTRYMODESET | _displaymode);
     }
 
+    public void createChar(int location, byte[] charmap) {
+        location &= 0x7; // we only have 8 locations 0-7
+        command(LCD_SETCGRAMADDR | (location << 3));
+        write(new String(charmap));
+    }
+
     private void command(int value) {
         I2cDevice dev = null;
         try {
