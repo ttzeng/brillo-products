@@ -17,9 +17,10 @@ public class OcResourceAudioControl extends OcResourceBase {
 
     private Mp3Player mp3Player;
 
-    OcResourceAudioControl(String resourceUri, String resourceInterface, EnumSet<ResourceProperty> resourcePropertySet,
-                           Mp3Player player) {
+    OcResourceAudioControl(String resourceUri, Mp3Player player) {
         try {
+            String resourceInterface = OcPlatform.DEFAULT_INTERFACE;
+            EnumSet<ResourceProperty> resourcePropertySet = EnumSet.of(ResourceProperty.DISCOVERABLE);
             mHandle = OcPlatform.registerResource(resourceUri, RESOURCE_TYPE, resourceInterface, this, resourcePropertySet);
             Log.d(TAG, "Resource " + resourceUri + " of type '" + RESOURCE_TYPE + "' registered");
             mp3Player = player;

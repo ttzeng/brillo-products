@@ -24,9 +24,10 @@ public class OcResourceBrightness extends OcResourceBase {
         void onBrightnessChanged(int brightness);
     }
 
-    OcResourceBrightness(String resourceUri, String resourceInterface, EnumSet<ResourceProperty> resourcePropertySet,
-                         int initBrightness, OnBrightnessChangeListener listener) {
+    OcResourceBrightness(String resourceUri, int initBrightness, OnBrightnessChangeListener listener) {
         try {
+            String resourceInterface = OcPlatform.DEFAULT_INTERFACE;
+            EnumSet<ResourceProperty> resourcePropertySet = EnumSet.of(ResourceProperty.DISCOVERABLE);
             mHandle = OcPlatform.registerResource(resourceUri, RESOURCE_TYPE, resourceInterface, this, resourcePropertySet);
             brightness = initBrightness;
             brightnessChangeListener = listener;

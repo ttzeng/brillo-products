@@ -21,9 +21,10 @@ public class OcResourceMp3Player extends OcResourceBase implements Mp3Player.OnM
 
     private Mp3Player mp3Player;
 
-    OcResourceMp3Player(String resourceUri, String resourceInterface, EnumSet<ResourceProperty> resourcePropertySet,
-                        Mp3Player player) {
+    OcResourceMp3Player(String resourceUri, Mp3Player player) {
         try {
+            String resourceInterface = OcPlatform.DEFAULT_INTERFACE;
+            EnumSet<ResourceProperty> resourcePropertySet = EnumSet.of(ResourceProperty.DISCOVERABLE, ResourceProperty.OBSERVABLE);
             mHandle = OcPlatform.registerResource(resourceUri, RESOURCE_TYPE, resourceInterface, this, resourcePropertySet);
             Log.d(TAG, "Resource " + resourceUri + " of type '" + RESOURCE_TYPE + "' registered");
         } catch (OcException e) {

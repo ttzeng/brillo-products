@@ -23,10 +23,11 @@ public class OcResourceColorRGB extends OcResourceBase {
         void onRGBChangedListener(int red, int green, int blue);
     }
 
-    OcResourceColorRGB(String resourceUri, String resourceInterface, EnumSet<ResourceProperty> resourcePropertySet,
-                       OnRGBChangedListener listener) {
+    OcResourceColorRGB(String resourceUri, OnRGBChangedListener listener) {
         red = green = blue = MAX_VALUE;
         try {
+            String resourceInterface = OcPlatform.DEFAULT_INTERFACE;
+            EnumSet<ResourceProperty> resourcePropertySet = EnumSet.of(ResourceProperty.DISCOVERABLE);
             mHandle = OcPlatform.registerResource(resourceUri, RESOURCE_TYPE, resourceInterface, this, resourcePropertySet);
             rgbChangedListener = listener;
             Log.d(TAG, "Resource " + resourceUri + " of type '" + RESOURCE_TYPE + "' registered");
