@@ -42,6 +42,6 @@ This repository contains the source code of the [Android Things](https://develop
 
 #### Screenshots
 - Complete set  
-<img src="http://ttzeng.github.io/doc/assets/OC-Jukebox-Brillo2.jpg" border="1" alt="Android Thingsb Jukebox demo" />
+<img src="https://media.githubusercontent.com/media/ttzeng/ttzeng.github.io/master/doc/assets/OC-Jukebox-Brillo2.jpg" border="1" alt="Android Thingsb Jukebox demo" />
 - Three Card widgets represent the found resources in the companion app  
-<img src="http://ttzeng.github.io/doc/assets/OC-Jukebox-Brillo2.png" border="1" alt="Screenshot of the Jukebox companion app" />
+<img src="https://media.githubusercontent.com/media/ttzeng/ttzeng.github.io/master/doc/assets/OC-Jukebox-Brillo2.png" border="1" alt="Screenshot of the Jukebox companion app" />
